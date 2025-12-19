@@ -11,5 +11,11 @@ data class ComunioConfig(
     data class ComunioStatsConfig(
         val baseUrl: String,
         val userAgent: String,
-    )
+        val credentials: ComunioStatsCredentials,
+    ) {
+        data class ComunioStatsCredentials(
+            val username: String,
+            val password: String,
+        )
+    }
 }
