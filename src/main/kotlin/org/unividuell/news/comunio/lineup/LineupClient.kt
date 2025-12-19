@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.body
 import org.unividuell.news.comunio.ComunioConfig
-import org.unividuell.news.comunio.openligadb.OpenLigaDb
 import org.zalando.logbook.Logbook
 import org.zalando.logbook.spring.LogbookClientHttpRequestInterceptor
 import java.time.Duration
@@ -47,15 +46,56 @@ class LineupClient(
         .baseUrl(comunioConfig.stats.baseUrl)
         .requestInterceptor(LogbookClientHttpRequestInterceptor(logbook))
 
-    fun scrape(groupOrderId: Int): List<MatchDetails?>? {
+    fun scrape(groupOrderId: Int): List<LineupOutput> {
         return fetchLineUp(groupOrderId = groupOrderId)
-            ?.let { parseLineup(it) }
-            ?.let { selectMatches(it) }
-            ?.let { selectMatchIds(it) }
-            ?.map { fetchMatchId(it) }
+            .let { parseLineup(it) }
+            .let { selectMatches(it) }
+            .let { selectMatchIds(it) }
+            .map { fetchMatchId(it) }
+            .map { (matchId, matchDetails) ->
+                LineupOutput(
+                    matchId = matchId,
+                    homeClub = matchDetails?.let { matchDetails ->
+                        LineupOutput.ComunioClub(
+                            cid = matchDetails.homeClubId,
+                            lineup = LineupOutput.ComunioClub.ClubLineup(
+                                state = LineupOutput.ComunioClub.ClubLineup.LineupState.byId(id = matchDetails.state),
+                                players = matchDetails.homePlayers.map {
+                                    LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer(
+                                        pid = it.playerId,
+                                        name = it.name,
+                                        position = LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer.Position.byId(
+                                            it.pos
+                                        ),
+                                        points = it.points,
+                                    )
+                                }
+                            )
+                        )
+                    },
+                    awayClub = matchDetails?.let { matchDetails ->
+                        LineupOutput.ComunioClub(
+                            cid = matchDetails.awayClubId,
+                            lineup = LineupOutput.ComunioClub.ClubLineup(
+                                state = LineupOutput.ComunioClub.ClubLineup.LineupState.byId(matchDetails.state),
+                                players = matchDetails.awayPlayers.map {
+                                    LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer(
+                                        pid = it.playerId,
+                                        name = it.name,
+                                        position = LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer.Position.byId(
+                                            it.pos
+                                        ),
+                                        points = it.points,
+                                    )
+                                }
+                            )
+                        )
+                    }
+                )
+            }
     }
 
-    private fun fetchLineUp(groupOrderId: Int): String? {
+    private fun fetchLineUp(groupOrderId: Int): String {
         val response = restClient
             .build()
             .get()
@@ -63,6 +103,7 @@ class LineupClient(
             .accept(MediaType.TEXT_HTML)
             .retrieve()
             .body<String>()
+            ?: throw IllegalStateException("Could not fetch lineup!")
         return response
     }
 
@@ -87,7 +128,7 @@ class LineupClient(
         supportedMediaTypes = listOf(MediaType.APPLICATION_JSON, MediaType.TEXT_HTML)
     }
 
-    private fun fetchMatchId(matchId: Int): MatchDetails? {
+    private fun fetchMatchId(matchId: Int): Pair<Int, MatchDetails?> {
         return RateLimiter.decorateSupplier(rateLimiter) {
             restClient
                 .configureMessageConverters { converters ->
@@ -104,7 +145,55 @@ class LineupClient(
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .body<MatchDetails>()
+                ?.let { matchDetails -> matchId to matchDetails } ?: (matchId to null)
         }.get()
+    }
+
+    data class LineupOutput(
+        val matchId: Int,
+        val homeClub: ComunioClub?,
+        val awayClub: ComunioClub?,
+    ) {
+        data class ComunioClub(
+            val cid: Int,
+            val lineup: ClubLineup,
+        ) {
+            data class ClubLineup(
+                val state: LineupState,
+                val players: List<ComunioFootballPlayer>,
+            ) {
+                enum class LineupState(val id: String) {
+                    Expected(""),
+                    Final("FT"),
+                    Unknow("???");
+                    companion object {
+                        fun byId(id: String?): LineupState {
+                            return entries.firstOrNull { it.id == id } ?: Unknow
+                        }
+                    }
+                }
+                data class ComunioFootballPlayer(
+                    val pid: Long,
+                    val name: String,
+                    val position: Position,
+                    val points: Int?,
+                ) {
+                    enum class Position(val id: String) {
+                        // "t", "a", "m", "s"
+                        Goalkeeper("t"),
+                        Defender("a"),
+                        Midfielder("m"),
+                        Forward("s");
+                        companion object {
+                            fun byId(id: String?): Position {
+                                return entries.first { it.id == id }
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
     }
 
     data class MatchDetails(
@@ -124,7 +213,7 @@ class LineupClient(
     )
 
     data class Player(
-        val playerId: Int,
+        val playerId: Long,
         val name: String,
         val pos: String, // z.B. "t", "a", "m", "s"
         val goals: Int,
