@@ -7,15 +7,17 @@ import org.springframework.modulith.test.ApplicationModuleTest
 import org.springframework.test.context.TestPropertySource
 
 @ApplicationModuleTest
-@TestPropertySource(properties = [
-    // request header `COOKIE` is set by underlying httpclient - logback does not see this
-    // note: `logbook-httpclient5` does not work also
-//    "logging.level.org.zalando.logbook=TRACE",
-    // use the build in logging :)
-    "logging.level.org.apache.hc.client5.http.headers=DEBUG",
-    "spring.ai.openai-sdk.api-key=FOO",
-],
-    locations = ["file:.env"])
+@TestPropertySource(
+    properties = [
+        // request header `COOKIE` is set by underlying httpclient - logback does not see this
+        // note: `logbook-httpclient5` does not work also
+        // "logging.level.org.zalando.logbook=TRACE",
+        // use the build in logging :)
+        "logging.level.org.apache.hc.client5.http.headers=DEBUG",
+        "spring.ai.openai-sdk.api-key=FOO",
+    ],
+    locations = ["file:.env"]
+)
 class MyLeagueClientTest {
 
     @Autowired
