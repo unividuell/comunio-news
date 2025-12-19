@@ -6,6 +6,7 @@ import org.springframework.context.annotation.PropertySource
 
 @ConfigurationProperties(prefix = "comunio")
 data class ComunioConfig(
+    val cid: Number,
     val stats: ComunioStatsConfig,
 ) {
     data class ComunioStatsConfig(
