@@ -67,6 +67,7 @@ class LineupClient(
                                         position = LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer.Position.byId(
                                             it.pos
                                         ),
+                                        goals = it.goals,
                                         points = it.points,
                                         active = LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer.Active.byId(it.active),
                                     )
@@ -86,6 +87,7 @@ class LineupClient(
                                         position = LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer.Position.byId(
                                             it.pos
                                         ),
+                                        goals = it.goals,
                                         points = it.points,
                                         active = LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer.Active.byId(it.active),
                                     )
@@ -180,6 +182,7 @@ class LineupClient(
                     val pid: Long,
                     val name: String,
                     val position: Position,
+                    val goals: Int,
                     val points: Int?,
                     val active: Active,
                 ) {
@@ -208,6 +211,8 @@ class LineupClient(
             }
             enum class MatchState(val id: String) {
                 FirstHalf("1st"),
+                HalfTime("HT"),
+                SecondHalf("2nd"),
                 FullTime("FT"),
                 Unknow("");
                 companion object {
