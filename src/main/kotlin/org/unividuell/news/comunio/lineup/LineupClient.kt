@@ -59,7 +59,7 @@ class LineupClient(
                         LineupOutput.ComunioClub(
                             cid = matchDetails.homeClubId,
                             lineup = LineupOutput.ComunioClub.ClubLineup(
-                                state = LineupOutput.ComunioClub.ClubLineup.LineupState.byId(id = matchDetails.state),
+                                details = LineupOutput.ComunioClub.ClubLineup.LineupDetails.byId(id = matchDetails.details),
                                 players = matchDetails.homePlayers.map {
                                     LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer(
                                         pid = it.playerId,
@@ -68,6 +68,7 @@ class LineupClient(
                                             it.pos
                                         ),
                                         points = it.points,
+                                        active = LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer.Active.byId(it.active),
                                     )
                                 }
                             )
@@ -77,7 +78,7 @@ class LineupClient(
                         LineupOutput.ComunioClub(
                             cid = matchDetails.awayClubId,
                             lineup = LineupOutput.ComunioClub.ClubLineup(
-                                state = LineupOutput.ComunioClub.ClubLineup.LineupState.byId(matchDetails.state),
+                                details = LineupOutput.ComunioClub.ClubLineup.LineupDetails.byId(matchDetails.details),
                                 players = matchDetails.awayPlayers.map {
                                     LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer(
                                         pid = it.playerId,
@@ -86,6 +87,7 @@ class LineupClient(
                                             it.pos
                                         ),
                                         points = it.points,
+                                        active = LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer.Active.byId(it.active),
                                     )
                                 }
                             )
@@ -159,15 +161,15 @@ class LineupClient(
             val lineup: ClubLineup,
         ) {
             data class ClubLineup(
-                val state: LineupState,
+                val details: LineupDetails,
                 val players: List<ComunioFootballPlayer>,
             ) {
-                enum class LineupState(val id: String) {
-                    Expected(""),
-                    Final("FT"),
-                    Unknow("???");
+                enum class LineupDetails(val id: Int) {
+                    Expected(1),
+                    Final(2),
+                    Unknow(-1);
                     companion object {
-                        fun byId(id: String?): LineupState {
+                        fun byId(id: Int): LineupDetails {
                             return entries.firstOrNull { it.id == id } ?: Unknow
                         }
                     }
@@ -177,6 +179,7 @@ class LineupClient(
                     val name: String,
                     val position: Position,
                     val points: Int?,
+                    val active: Active,
                 ) {
                     enum class Position(val id: String) {
                         // "t", "a", "m", "s"
@@ -189,7 +192,15 @@ class LineupClient(
                                 return entries.first { it.id == id }
                             }
                         }
-
+                    }
+                    enum class Active(val id: Int) {
+                        ProperlyActive(-1),
+                        Active(1),
+                        Bench(-2),
+                        Unknow(-1000);
+                        companion object {
+                            fun byId(id: Int): Active = entries.firstOrNull { it.id == id } ?: Unknow
+                        }
                     }
                 }
             }
