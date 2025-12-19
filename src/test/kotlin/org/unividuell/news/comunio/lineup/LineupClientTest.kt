@@ -12,8 +12,10 @@ import org.springframework.test.context.TestPropertySource
 import org.unividuell.news.comunio.openligadb.OpenLigaDb
 
 @ApplicationModuleTest
-@EnableAutoConfiguration(exclude=[ OpenAiSdkChatAutoConfiguration::class ])
-@TestPropertySource(properties = ["logging.level.org.unividuell.news.comunio.lineup=DEBUG"])
+@TestPropertySource(properties = [
+    "logging.level.org.unividuell.news.comunio.lineup=DEBUG",
+    "spring.ai.openai-sdk.api-key=FOO",
+])
 class LineupClientTest {
 
     @Autowired

@@ -12,11 +12,14 @@ import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.body
+import org.unividuell.news.comunio.ComunioConfig
 import org.unividuell.news.comunio.openligadb.OpenLigaDb
 import java.time.Duration
 
 @Component
-class LineupClient {
+class LineupClient(
+    comunioConfig: ComunioConfig
+) {
 
     private val logger = KotlinLogging.logger {  }
 
@@ -37,8 +40,8 @@ class LineupClient {
         }
 
     private val restClient = RestClient.builder()
-        .defaultHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:147.0) Gecko/20100101 Firefox/147.0")
-        .baseUrl("https://stats.comunio.de")
+        .defaultHeader(comunioConfig.stats.userAgent)
+        .baseUrl(comunioConfig.stats.baseUrl)
         .requestInterceptor { request, bytes, execution ->
             val response = execution.execute(request, bytes)
             logger.debug {

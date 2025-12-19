@@ -1,0 +1,15 @@
+package org.unividuell.news.comunio
+
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.PropertySource
+
+@ConfigurationProperties(prefix = "comunio")
+data class ComunioConfig(
+    val stats: ComunioStatsConfig,
+) {
+    data class ComunioStatsConfig(
+        val baseUrl: String,
+        val userAgent: String,
+    )
+}

@@ -22,8 +22,10 @@ import kotlin.collections.mapValues
 import kotlin.time.Duration.Companion.minutes
 
 @ApplicationModuleTest
-@EnableAutoConfiguration(exclude=[ OpenAiSdkChatAutoConfiguration::class ])
-@TestPropertySource(properties = ["logging.level.org.unividuell.news.comunio.openligadb=DEBUG"])
+@TestPropertySource(properties = [
+    "logging.level.org.unividuell.news.comunio.openligadb=DEBUG",
+    "spring.ai.openai-sdk.api-key=FOO",
+])
 class OpenLigaDbTest {
 
     @Autowired
