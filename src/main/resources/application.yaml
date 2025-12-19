@@ -13,3 +13,59 @@ logbook:
   format:
     style: http
   strategy: body-only-if-status-at-least
+app:
+  club-id-mapping:
+    - name: BVB
+      olid: 7
+      cid: 5
+    - name: BMG
+      olid: 87
+      cid: 3
+    - name: VFB
+      olid: 16
+      cid: 14
+    - name: TSG
+      olid: 175
+      cid: 62
+    - name: WOB
+      olid: 131
+      cid: 12
+    - name: SCF
+      olid: 112
+      cid: 21
+    - name: FCA
+      olid: 95
+      cid: 68
+    - name: SVW
+      olid: 134
+      cid: 6
+    - name: KOE
+      olid: 65
+      cid: 13
+    - name: FCU
+      olid: 80
+      cid: 109
+    - name: HSV
+      olid: 100
+      cid: 4
+    - name: SGE
+      olid: 91
+      cid: 9
+    - name: RBL
+      olid: 1635
+      cid: 92
+    - name: B04
+      olid: 6
+      cid: 8
+    - name: M05
+      olid: 81
+      cid: 18
+    - name: STP
+      olid: 98
+      cid: 25
+    - name: FCH
+      olid: 199
+      cid: 110
+    - name: FCB
+      olid: 40
+      cid: 1

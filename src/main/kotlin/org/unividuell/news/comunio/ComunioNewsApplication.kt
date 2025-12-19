@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
 
 @SpringBootApplication
-@EnableConfigurationProperties(ComunioConfig::class)
+@EnableConfigurationProperties(ComunioConfig::class, AppConfig::class)
 class ComunioNewsApplication
 
 fun main(args: Array<String>) {

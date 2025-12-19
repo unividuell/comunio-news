@@ -1,8 +1,6 @@
 package org.unividuell.news.comunio
 
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.PropertySource
 
 @ConfigurationProperties(prefix = "comunio")
 data class ComunioConfig(
@@ -19,4 +17,13 @@ data class ComunioConfig(
             val password: String,
         )
     }
+}
+
+@ConfigurationProperties(prefix = "app")
+data class AppConfig(val clubIdMapping: List<ClubIdMapping>) {
+    data class ClubIdMapping(
+        val name: String,
+        val olid: Int,
+        val cid : Int,
+    )
 }
