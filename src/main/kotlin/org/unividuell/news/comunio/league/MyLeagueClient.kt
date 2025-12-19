@@ -183,7 +183,7 @@ class MyLeagueClient(
             NotInSquad(-3),
             Unknown(-100);
             companion object {
-                fun byId(id: Int): MatchActive {
+                fun byId(id: Int?): MatchActive {
                     return entries.firstOrNull { it.id == id } ?: Unknown
                 }
             }
@@ -207,29 +207,29 @@ class MyLeagueClient(
     data class Player(
         val pid: String,
         val active: Int,
-        val matchActive: Int,
+        val matchActive: Int?,
         val name: String,
-        val goals: Int,
-        val ownGoals: Int,
-        val pens: Int,
-        val pensSaved: Int,
-        val pensMissed: Int,
-        val assists: Int,
-        val yellow: Int,
-        val yellowred: Int,
-        val red: Int,
-        val subIn: Int? = null,
-        val subOut: Int? = null,
-        val rating: String? = null,
-        val points: Int? = null,
+        val goals: Int?,
+        val ownGoals: Int?,
+        val pens: Int?,
+        val pensSaved: Int?,
+        val pensMissed: Int?,
+        val assists: Int?,
+        val yellow: Int?,
+        val yellowred: Int?,
+        val red: Int?,
+        val subIn: Int?,
+        val subOut: Int?,
+        val rating: String?,
+        val points: Int?,
         val clubId: Int,
         val clubName: String,
-        val place: String,
+        val place: String?,
         val pos: String,
-        val pre: Any? = null,
+        val pre: Any?,
         val trending: Int,
         val rising: Int,
-        val ratingLevel: Int? = null,
+        val ratingLevel: Int?,
         val status: Int,
         val valued: Int,
         val clubMatchInfo: ClubMatchInfo
