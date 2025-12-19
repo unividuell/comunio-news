@@ -2,6 +2,8 @@ package org.unividuell.news.comunio.lineup
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.resilience4j.ratelimiter.RateLimiter
+import io.github.resilience4j.ratelimiter.RateLimiterConfig
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
@@ -11,11 +13,28 @@ import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.body
 import org.unividuell.news.comunio.openligadb.OpenLigaDb
+import java.time.Duration
 
 @Component
 class LineupClient {
 
     private val logger = KotlinLogging.logger {  }
+
+    private val rateLimiter = RateLimiter
+        .of(
+            "comunio-api",
+            RateLimiterConfig.custom()
+                // max 3 requests during 5 seconds
+                .limitForPeriod(3)
+                .limitRefreshPeriod(Duration.ofSeconds(5))
+                // parks thread for up to 10 seconds before throwing a RequestNotPermitted exception
+                .timeoutDuration(Duration.ofSeconds(10))
+                .build()
+        ).also { rateLimiter ->
+            rateLimiter.eventPublisher
+                .onSuccess { logger.debug { "Rate Limiter: Permit acquired for '${it.rateLimiterName}'" } }
+                .onFailure { logger.warn { "Rate Limiter: Request denied/timed out for '${it.rateLimiterName}'! ${it.eventType}" } }
+        }
 
     private val restClient = RestClient.builder()
         .defaultHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:147.0) Gecko/20100101 Firefox/147.0")
@@ -72,20 +91,23 @@ class LineupClient {
 
 
     private fun fetchMatchId(matchId: Int): MatchDetails? {
-        return restClient
-            .configureMessageConverters { converters ->
-                converters.addCustomConverter(converter)
-            }
-            .build()
-            .get()
-            .uri { uriBuilder -> uriBuilder
-                .path("xhr/matchDetails.php")
-                .queryParam("mid", matchId)
+        return RateLimiter.decorateSupplier(rateLimiter) {
+            restClient
+                .configureMessageConverters { converters ->
+                    converters.addCustomConverter(converter)
+                }
                 .build()
-            }
-            .accept(MediaType.APPLICATION_JSON)
-            .retrieve()
-            .body<MatchDetails>()
+                .get()
+                .uri { uriBuilder ->
+                    uriBuilder
+                        .path("xhr/matchDetails.php")
+                        .queryParam("mid", matchId)
+                        .build()
+                }
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .body<MatchDetails>()
+        }.get()
     }
 
     data class MatchDetails(
