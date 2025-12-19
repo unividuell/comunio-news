@@ -8,12 +8,11 @@ import org.springframework.web.client.RestClient
 import org.zalando.logbook.Logbook
 import org.zalando.logbook.spring.LogbookClientHttpRequestInterceptor
 import java.time.Instant
-import java.time.LocalDate
+import java.time.OffsetDateTime
 import java.time.ZoneId
-import java.time.temporal.ChronoUnit
 
 @Component
-class OpenLigaDb(
+class OpenLigaDbClient(
     logbook: Logbook
 ) {
 
@@ -26,19 +25,40 @@ class OpenLigaDb(
         .requestInterceptor(LogbookClientHttpRequestInterceptor(logbook))
         .build()
 
-    val matches: List<Match> = getMatchDataApi()
+    data class OpenLigaDbMatch(
+        val group: OpenLigaDbMatchGroup,
+        val matchDateTimeUTC: OffsetDateTime,
+    ) {
+        data class OpenLigaDbMatchGroup(
+            val groupOrderId: Int
+        )
+    }
 
-    val kickOffInstants = matches.mapNotNull { it.matchDateTimeUTC }.toSet().sorted()
+    val matches: List<OpenLigaDbMatch> = getMatchDataApi()
+        .map { http ->
+            OpenLigaDbMatch(
+                group = http.group!!.let { httpGroup ->
+                    OpenLigaDbMatch.OpenLigaDbMatchGroup(
+                        groupOrderId = httpGroup.groupOrderID!!
+                    )
+                },
+                matchDateTimeUTC = http.matchDateTimeUTC!!
+            )
+        }
+
+    val kickOffInstants = matches.map { it.matchDateTimeUTC }.toSet().sorted()
 
     val kickOffsByMatchGroup = matches
-        .groupBy { it.group?.groupOrderID }
-        .mapValues { it.value.map { it.matchDateTimeUTC }.toSet() }
-        .mapValues { it.value.mapNotNull { it?.atZoneSameInstant(zoneBerlin) } }
+        .groupBy { it.group.groupOrderId }
+        .mapValues { it.value.map { match -> match.matchDateTimeUTC }.toSet() }
+        .mapValues { it.value.mapNotNull { kickoff -> kickoff.atZoneSameInstant(zoneBerlin) } }
 
     val kickOffsGroupStartEnd = kickOffsByMatchGroup
-        .mapValues { Pair(it.value.minBy { it }, it.value.maxBy { it }) }
+        .mapValues { entry -> Pair(entry.value.minBy { it }, entry.value.maxBy { it }) }
 
-    fun getMatchDataApi(): List<Match> {
+    val matchesByGroupOrderId = matches.groupBy { it.group.groupOrderId }
+
+    private fun getMatchDataApi(): List<Match> {
         return MatchdataApi(client)
             .getmatchdataLeagueShortcutLeagueSeasonGet(leagueShortcut = "bl1", leagueSeason = 2025)
     }

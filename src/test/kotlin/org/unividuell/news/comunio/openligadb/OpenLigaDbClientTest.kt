@@ -2,34 +2,24 @@ package org.unividuell.news.comunio.openligadb
 
 import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import io.micrometer.common.annotation.ValueExpressionResolver
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
-import org.junit.jupiter.params.provider.ValueSource
-import org.springframework.ai.model.openaisdk.autoconfigure.OpenAiSdkChatAutoConfiguration
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.modulith.test.ApplicationModuleTest
 import org.springframework.test.context.TestPropertySource
 import java.time.OffsetDateTime
-import java.time.ZoneId
-import java.time.ZonedDateTime
-import kotlin.collections.mapValues
-import kotlin.time.Duration.Companion.minutes
 
 @ApplicationModuleTest
 @TestPropertySource(properties = [
     "logging.level.org.zalando.logbook=TRACE",
     "spring.ai.openai-sdk.api-key=FOO",
 ])
-class OpenLigaDbTest {
+class OpenLigaDbClientTest {
 
     @Autowired
-    lateinit var sut: OpenLigaDb
+    lateinit var sut: OpenLigaDbClient
 
     @Test
     fun `it should list all groups`() {
