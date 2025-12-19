@@ -23,7 +23,7 @@ import kotlin.time.Duration.Companion.minutes
 
 @ApplicationModuleTest
 @TestPropertySource(properties = [
-    "logging.level.org.unividuell.news.comunio.openligadb=DEBUG",
+    "logging.level.org.zalando.logbook=TRACE",
     "spring.ai.openai-sdk.api-key=FOO",
 ])
 class OpenLigaDbTest {

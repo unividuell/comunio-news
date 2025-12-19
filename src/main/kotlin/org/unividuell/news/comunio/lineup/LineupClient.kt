@@ -14,11 +14,14 @@ import org.springframework.web.client.RestClient
 import org.springframework.web.client.body
 import org.unividuell.news.comunio.ComunioConfig
 import org.unividuell.news.comunio.openligadb.OpenLigaDb
+import org.zalando.logbook.Logbook
+import org.zalando.logbook.spring.LogbookClientHttpRequestInterceptor
 import java.time.Duration
 
 @Component
 class LineupClient(
-    comunioConfig: ComunioConfig
+    comunioConfig: ComunioConfig,
+    logbook: Logbook,
 ) {
 
     private val logger = KotlinLogging.logger {  }
@@ -42,16 +45,7 @@ class LineupClient(
     private val restClient = RestClient.builder()
         .defaultHeader(comunioConfig.stats.userAgent)
         .baseUrl(comunioConfig.stats.baseUrl)
-        .requestInterceptor { request, bytes, execution ->
-            val response = execution.execute(request, bytes)
-            logger.debug {
-                """|
-                    |>>> ${request.method} ${request.uri}
-                    |<<< ${response.statusCode}
-                """.trimMargin()
-            }
-            return@requestInterceptor response
-        }
+        .requestInterceptor(LogbookClientHttpRequestInterceptor(logbook))
 
     fun scrape(matchGroup: OpenLigaDb.MatchGroup): List<MatchDetails?>? {
         return fetchLineUp(matchGroup)

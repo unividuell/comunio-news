@@ -13,7 +13,7 @@ import org.unividuell.news.comunio.openligadb.OpenLigaDb
 
 @ApplicationModuleTest
 @TestPropertySource(properties = [
-    "logging.level.org.unividuell.news.comunio.lineup=DEBUG",
+    "logging.level.org.zalando.logbook=TRACE",
     "spring.ai.openai-sdk.api-key=FOO",
 ])
 class LineupClientTest {

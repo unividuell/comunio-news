@@ -5,13 +5,17 @@ import de.openligadb.model.Match
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
+import org.zalando.logbook.Logbook
+import org.zalando.logbook.spring.LogbookClientHttpRequestInterceptor
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 
 @Component
-class OpenLigaDb {
+class OpenLigaDb(
+    logbook: Logbook
+) {
 
     private val logger = KotlinLogging.logger {  }
 
@@ -19,10 +23,7 @@ class OpenLigaDb {
 
     private val client = RestClient.builder()
         .baseUrl("https://api.openligadb.de/")
-        .requestInterceptor { request, bytes, execution ->
-            logger.debug { ">>> ${request.method} ${request.uri}" }
-            execution.execute(request, bytes)
-        }
+        .requestInterceptor(LogbookClientHttpRequestInterceptor(logbook))
         .build()
 
     val matches: List<Match> = getMatchDataApi()
