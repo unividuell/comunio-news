@@ -24,7 +24,7 @@ class LineupClientTest {
     @Disabled
     @Test
     fun `it should scrape the lineup`() {
-        val actual = sut.scrape(OpenLigaDb.MatchGroup(groupOrderId = 15))
+        val actual = sut.scrape(groupOrderId = 15)
         actual?.forEach { println(it) }
     }
 

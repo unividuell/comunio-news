@@ -42,11 +42,6 @@ class MyLeagueClient(
         .setDefaultCookieStore(BasicCookieStore())
         .build()
 
-    // comunio lies about the content-type (`text/html` but it is `application/json`)!
-    private val htmlJsonConverter = JacksonJsonHttpMessageConverter().apply {
-        supportedMediaTypes = listOf(MediaType.APPLICATION_JSON, MediaType.TEXT_HTML)
-    }
-
     private val restClient = RestClient.builder()
         .requestFactory(HttpComponentsClientHttpRequestFactory(httpClient))
         .baseUrl(comunioConfig.stats.baseUrl)
@@ -144,6 +139,11 @@ class MyLeagueClient(
             }
     }
 
+    // comunio lies about the content-type (`text/html` but it is `application/json`)!
+    private val htmlJsonConverter = JacksonJsonHttpMessageConverter().apply {
+        supportedMediaTypes = listOf(MediaType.APPLICATION_JSON, MediaType.TEXT_HTML)
+    }
+
     private fun loadPlayerLineup(comunioPlayer: ComunioPlayer): ApiResponse {
         return restClient
             .configureMessageConverters { converters ->
@@ -157,6 +157,7 @@ class MyLeagueClient(
                 .queryParam("i", comunioPlayer.userId)
                 .build()
             }
+            .accept(MediaType.APPLICATION_JSON)
             .retrieve()
             .body<ApiResponse>()
             ?: throw IllegalStateException("Could not fetch lineup for player ${comunioPlayer.username}!")

@@ -47,19 +47,19 @@ class LineupClient(
         .baseUrl(comunioConfig.stats.baseUrl)
         .requestInterceptor(LogbookClientHttpRequestInterceptor(logbook))
 
-    fun scrape(matchGroup: OpenLigaDb.MatchGroup): List<MatchDetails?>? {
-        return fetchLineUp(matchGroup)
+    fun scrape(groupOrderId: Int): List<MatchDetails?>? {
+        return fetchLineUp(groupOrderId = groupOrderId)
             ?.let { parseLineup(it) }
             ?.let { selectMatches(it) }
             ?.let { selectMatchIds(it) }
             ?.map { fetchMatchId(it) }
     }
 
-    private fun fetchLineUp(matchGroup: OpenLigaDb.MatchGroup): String? {
+    private fun fetchLineUp(groupOrderId: Int): String? {
         val response = restClient
             .build()
             .get()
-            .uri("matchday/2025-26/{matchGroupOrderId}", matchGroup.groupOrderId)
+            .uri("matchday/2025-26/{matchGroupOrderId}", groupOrderId)
             .accept(MediaType.TEXT_HTML)
             .retrieve()
             .body<String>()
@@ -70,28 +70,28 @@ class LineupClient(
         return Jsoup.parse(body)
     }
 
-    private fun selectMatches(document: Document): Elements? {
+    private fun selectMatches(document: Document): Elements {
         return document.select("div#content > div.matches > div.match")
     }
 
     private fun selectMatchIds(matches: Elements): List<Int> {
+        val selector = "matchDetails_"
         return matches.mapNotNull { match ->
-            val details = match.selectFirst("div[id^=matchDetails_]")
-            details?.id()?.replace("matchDetails_", "")?.toInt()
+            val details = match.selectFirst("div[id^=$selector]")
+            details?.id()?.replace(selector, "")?.toInt()
         }
     }
 
     // comunio lies about the content-type (`text/html` but it is `application/json`)!
-    private val converter = JacksonJsonHttpMessageConverter().apply {
+    private val htmlJsonConverter = JacksonJsonHttpMessageConverter().apply {
         supportedMediaTypes = listOf(MediaType.APPLICATION_JSON, MediaType.TEXT_HTML)
     }
-
 
     private fun fetchMatchId(matchId: Int): MatchDetails? {
         return RateLimiter.decorateSupplier(rateLimiter) {
             restClient
                 .configureMessageConverters { converters ->
-                    converters.addCustomConverter(converter)
+                    converters.addCustomConverter(htmlJsonConverter)
                 }
                 .build()
                 .get()
