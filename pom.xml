@@ -114,6 +114,12 @@
       <artifactId>kotlin-logging-jvm</artifactId>
       <version>7.0.7</version>
     </dependency>
+    <dependency>
+      <!-- jsoup HTML parser library @ https://jsoup.org/ -->
+      <groupId>org.jsoup</groupId>
+      <artifactId>jsoup</artifactId>
+      <version>1.21.2</version>
+    </dependency>
 
     <dependency>
       <groupId>org.springframework.boot</groupId>
