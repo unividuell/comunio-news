@@ -92,7 +92,8 @@ class LineupClient(
                                 }
                             )
                         )
-                    }
+                    },
+                    state = LineupOutput.ComunioClub.MatchState.byId(matchDetails?.state)
                 )
             }
     }
@@ -155,6 +156,7 @@ class LineupClient(
         val matchId: Int,
         val homeClub: ComunioClub?,
         val awayClub: ComunioClub?,
+        val state: ComunioClub.MatchState,
     ) {
         data class ComunioClub(
             val cid: Int,
@@ -201,6 +203,16 @@ class LineupClient(
                         companion object {
                             fun byId(id: Int): Active = entries.firstOrNull { it.id == id } ?: Unknow
                         }
+                    }
+                }
+            }
+            enum class MatchState(val id: String) {
+                FirstHalf("1st"),
+                FullTime("FT"),
+                Unknow("");
+                companion object {
+                    fun byId(id: String?): MatchState {
+                        return entries.firstOrNull { it.id == id } ?: Unknow
                     }
                 }
             }
