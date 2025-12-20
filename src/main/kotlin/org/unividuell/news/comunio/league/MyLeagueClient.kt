@@ -2,22 +2,17 @@ package org.unividuell.news.comunio.league
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.github.resilience4j.ratelimiter.RateLimiter
-import io.github.resilience4j.ratelimiter.RateLimiterConfig
-import org.apache.hc.client5.http.cookie.BasicCookieStore
-import org.apache.hc.client5.http.impl.classic.HttpClients
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.springframework.http.MediaType
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter
 import org.springframework.stereotype.Component
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.body
 import org.unividuell.news.comunio.ComunioConfig
-import java.time.Duration
 
+@Deprecated("Use MemberLineupClient instead")
 @Component
 class MyLeagueClient(
     private val comunioConfig: ComunioConfig,
