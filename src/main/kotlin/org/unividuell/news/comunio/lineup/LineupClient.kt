@@ -68,6 +68,7 @@ class LineupClient(
                                             it.pos
                                         ),
                                         goals = it.goals,
+                                        penaltyGoals = it.pens,
                                         points = it.points,
                                         active = LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer.Active.byId(it.active),
                                     )
@@ -88,6 +89,7 @@ class LineupClient(
                                             it.pos
                                         ),
                                         goals = it.goals,
+                                        penaltyGoals = it.pens,
                                         points = it.points,
                                         active = LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer.Active.byId(it.active),
                                     )
@@ -183,6 +185,7 @@ class LineupClient(
                     val name: String,
                     val position: Position,
                     val goals: Int,
+                    val penaltyGoals: Int,
                     val points: Int?,
                     val active: Active,
                 ) {

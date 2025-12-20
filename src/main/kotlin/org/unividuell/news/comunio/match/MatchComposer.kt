@@ -22,9 +22,13 @@ class MatchComposer(
         ) {
             data class Player(
                 val name: String,
-                val manager: String?,
+                val user: String?,
                 val position: String,
+                val goals: Int,
+                val penaltyGoals: Int,
                 val points: Int?,
+                val activeByClub: String,
+                val activeByUser: String?,
             )
         }
     }
@@ -42,7 +46,7 @@ class MatchComposer(
                             clubName = appConfig.clubIdMapping.first { it.cid == club.cid }.name,
                             lineup = club.lineup,
                             manager = { pid ->
-                                myLeague.find { manager -> manager.lineup.any { it.pid == pid } }?.username
+                                myLeague.find { manager -> manager.lineup.any { it.pid == pid } }
                             }
                         )
                     },
@@ -51,7 +55,7 @@ class MatchComposer(
                             clubName = appConfig.clubIdMapping.first { it.cid == club.cid }.name,
                             lineup = club.lineup,
                             manager = { pid ->
-                                myLeague.find { manager -> manager.lineup.any { it.pid == pid } }?.username
+                                myLeague.find { manager -> manager.lineup.any { it.pid == pid } }
                             }
                         )
                     }
@@ -62,16 +66,23 @@ class MatchComposer(
     private fun composeClub(
         clubName: String,
         lineup: LineupClient.LineupOutput.ComunioClub.ClubLineup,
-        manager: (Long) -> String?,
-    ): Match.AiClub = Match.AiClub(
-        name = clubName,
-        lineup = lineup.players.map { player ->
-            Match.AiClub.Player(
-                name = player.name,
-                manager = manager(player.pid),
-                position = player.position.name,
-                points = player.points,
-            )
-        }
-    )
+        manager: (Long) -> MyLeagueClient.ComunioPlayerOutput?,
+    ): Match.AiClub {
+        return Match.AiClub(
+            name = clubName,
+            lineup = lineup.players.map { player ->
+                val manager = manager(player.pid)
+                Match.AiClub.Player(
+                    name = player.name,
+                    user = manager?.username,
+                    position = player.position.name,
+                    goals = player.goals,
+                    penaltyGoals = player.penaltyGoals,
+                    points = player.points,
+                    activeByClub = player.active.name,
+                    activeByUser = manager?.lineup?.find { it.pid == player.pid }?.activeByUser?.name
+                )
+            }
+        )
+    }
 }

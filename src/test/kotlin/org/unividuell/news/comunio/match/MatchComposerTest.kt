@@ -8,12 +8,13 @@ import org.springframework.test.context.TestPropertySource
 import org.unividuell.news.comunio.league.MyLeagueClient
 import org.unividuell.news.comunio.lineup.LineupClient
 import org.unividuell.news.comunio.openligadb.OpenLigaDbClient
+import tools.jackson.databind.json.JsonMapper
 
 @ApplicationModuleTest(mode = ApplicationModuleTest.BootstrapMode.DIRECT_DEPENDENCIES)
 @TestPropertySource(
     properties = [
-        "logging.level.org.zalando.logbook=TRACE",
-        "logging.level.org.apache.hc.client5.http.headers=DEBUG",
+        "logging.level.org.zalando.logbook=DEBUG",
+        "logging.level.org.apache.hc.client5.http.headers=INFO",
         "org.unividuell.news.comunio=INFO",
         "spring.ai.openai-sdk.api-key=FOO",
     ],
@@ -30,6 +31,9 @@ class MatchComposerTest {
     @Autowired
     lateinit var myLeagueClient: MyLeagueClient
 
+    @Autowired
+    lateinit var json: JsonMapper
+
 //    @Autowired
 //    lateinit var openLigaDbClient: OpenLigaDbClient
 
@@ -42,11 +46,7 @@ class MatchComposerTest {
         val actual = sut.composeMatch(groupOrderId = groupOrderId)
         // assert
         actual.forEach {
-            println("${it.homeClub.name} - ${it.awayClub.name}")
-            println("HOME")
-            println(it.homeClub.lineup.map { "${it.name} [${it.manager}]" }.joinToString(", "))
-            println("AWAY")
-            println(it.awayClub.lineup.map { "${it.name} [${it.manager}]" }.joinToString(", "))
+            println(json.writeValueAsString(it))
         }
     }
 

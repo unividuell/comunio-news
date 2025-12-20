@@ -130,7 +130,7 @@ class MyLeagueClient(
                         ComunioPlayerOutput.ComunioFootballPlayer(
                             pid = player.pid.toLong(),
                             name = player.name,
-                            startingEleven = player.active == 1,
+                            activeByUser = ComunioPlayerOutput.UserActive.byId(id = player.active),
                             matchActive = ComunioPlayerOutput.MatchActive.byId(player.matchActive),
                             valued = player.valued == 1
                         )
@@ -173,10 +173,20 @@ class MyLeagueClient(
         data class ComunioFootballPlayer(
             val pid: Long,
             val name: String,
-            val startingEleven: Boolean,
+            val activeByUser: UserActive,
             val matchActive: MatchActive,
             val valued: Boolean,
         )
+        enum class UserActive(val id: Int) {
+            Active(1),
+            Inactive(0),
+            Unknown(-100);
+            companion object {
+                fun byId(id: Int?): UserActive {
+                    return entries.firstOrNull { it.id == id } ?: Unknown
+                }
+            }
+        }
         enum class MatchActive(val id: Int) {
             Active(1),
             Bench(-2),
