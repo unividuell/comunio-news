@@ -5,3 +5,6 @@ th, td {
 .spoiler {
     display: none;
 }
+table.show-spoilers .spoiler {
+    display: table-cell;
+}
