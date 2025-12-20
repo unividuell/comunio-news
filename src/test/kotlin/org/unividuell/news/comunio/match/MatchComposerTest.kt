@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.modulith.test.ApplicationModuleTest
 import org.springframework.test.context.TestPropertySource
-import org.unividuell.news.comunio.league.MyLeagueClient
 import org.unividuell.news.comunio.lineup.MatchLineupClient
 import tools.jackson.databind.json.JsonMapper
 
@@ -27,9 +26,6 @@ class MatchComposerTest {
     lateinit var matchLineupClient: MatchLineupClient
 
     @Autowired
-    lateinit var myLeagueClient: MyLeagueClient
-
-    @Autowired
     lateinit var json: JsonMapper
 
 //    @Autowired
@@ -39,9 +35,9 @@ class MatchComposerTest {
     fun `it should compose a match`() {
         // arrange
         val groupOrderId = 15
-//        val matches = openLigaDbClient.matchesByGroupOrderId[groupOrderId]!!
+        val comunioGameId = 395809
         // act
-        val actual = sut.composeMatch(groupOrderId = groupOrderId)
+        val actual = sut.composeMatch(groupOrderId = groupOrderId, comunioGameId = comunioGameId)
         // assert
         actual.forEach {
             println(json.writeValueAsString(it))
