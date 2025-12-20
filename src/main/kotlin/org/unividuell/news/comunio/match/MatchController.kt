@@ -8,10 +8,16 @@ import java.time.LocalDateTime
 
 
 @Controller
-class MatchController {
+class MatchController(
+    private val matchComposer: MatchComposer
+) {
 
     @GetMapping("/")
-    fun index() = "index"
+    fun index(model: Model): String {
+        val matches = matchComposer.composeMatch(groupOrderId = 15)
+        model.addAttribute("matches", matches)
+        return "index"
+    }
 
     @PostMapping("/clicked")
     fun clicked(model: Model): String {

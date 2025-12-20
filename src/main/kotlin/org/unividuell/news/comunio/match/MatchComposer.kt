@@ -1,5 +1,6 @@
 package org.unividuell.news.comunio.match
 
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Component
 import org.unividuell.news.comunio.AppConfig
 import org.unividuell.news.comunio.lineup.MatchLineupClient
@@ -43,6 +44,7 @@ class MatchComposer(
         }
     }
 
+    @Cacheable(value = ["matchComposer"], key = "#groupOrderId")
     fun composeMatch(groupOrderId: Int): List<MatchComposerOutput> {
         val matchLineup = matchLineupClient.scrape(groupOrderId = groupOrderId)
         val memberLineup = memberLineupClient.scrape(comunioGamedayId = matchLineup.comunioGamedayId)
