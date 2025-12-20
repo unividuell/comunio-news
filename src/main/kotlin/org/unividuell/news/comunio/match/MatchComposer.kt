@@ -3,7 +3,9 @@ package org.unividuell.news.comunio.match
 import org.springframework.stereotype.Component
 import org.unividuell.news.comunio.AppConfig
 import org.unividuell.news.comunio.lineup.MatchLineupClient
+import org.unividuell.news.comunio.lineup.MatchLineupClient.LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer
 import org.unividuell.news.comunio.lineup.MemberLineupClient
+import org.unividuell.news.comunio.match.MatchComposer.MatchComposerOutput.AiClub.Player.ClubLineupStatus
 
 @Component
 class MatchComposer(
@@ -12,7 +14,7 @@ class MatchComposer(
     private val memberLineupClient: MemberLineupClient,
 ) {
 
-    data class Match(
+    data class MatchComposerOutput(
         val homeClub: AiClub,
         val awayClub: AiClub,
     ) {
@@ -23,24 +25,32 @@ class MatchComposer(
             data class Player(
                 val name: String,
                 val member: String?,
+                val usedByMember: Boolean?,
                 val position: String,
                 val goals: Int,
                 val penaltyGoals: Int,
                 val points: Int?,
-                val linedUpByClubAt: String,
-                val usedByMember: Boolean?,
-            )
+                val clubLineupStatus: ClubLineupStatus,
+                val substitutedInAtMin: Int?,
+                val substitutedOutAtMin: Int?,
+            ) {
+                enum class ClubLineupStatus {
+                    StartOnField,
+                    StartOnBench,
+                    NotInSquad,
+                }
+            }
         }
     }
 
-    fun composeMatch(groupOrderId: Int, comunioGameId: Int): List<Match> {
+    fun composeMatch(groupOrderId: Int, comunioGameId: Int): List<MatchComposerOutput> {
         val matchLineup = matchLineupClient.scrape(groupOrderId = groupOrderId)
         val memberLineup = memberLineupClient.scrape(comunioGamedayId = comunioGameId)
 
         return matchLineup
             .filter { it.homeClub != null && it.awayClub != null }
             .map { match ->
-                Match(
+                MatchComposerOutput(
                     homeClub = match.homeClub!!.let { club -> composeClub(club = club, memberLineup = memberLineup) },
                     awayClub = match.awayClub!!.let { club -> composeClub(club = club, memberLineup = memberLineup) }
                 )
@@ -50,23 +60,43 @@ class MatchComposer(
     private fun composeClub(
         club: MatchLineupClient.LineupOutput.ComunioClub,
         memberLineup: MemberLineupClient.MemberLineupOutput,
-    ): Match.AiClub {
-        return Match.AiClub(
+    ): MatchComposerOutput.AiClub {
+        return MatchComposerOutput.AiClub(
             name = appConfig.clubIdMapping.first { it.cid == club.cid }.name,
             lineup = club.lineup.players.map { player ->
                 val member = memberLineup.members.find { it.lineup.any { it.playerId == player.pid } }
                 val memberPlayer = member?.lineup?.find { it.playerId == player.pid }
-                Match.AiClub.Player(
+                MatchComposerOutput.AiClub.Player(
                     name = player.name,
                     member = member?.name,
+                    usedByMember = memberPlayer?.active,
                     position = player.position.name,
                     goals = player.goals,
                     penaltyGoals = player.penaltyGoals,
                     points = player.points,
-                    linedUpByClubAt = player.active.name,
-                    usedByMember = memberPlayer?.active
+                    clubLineupStatus = detectClubLineupStatus(player = player),
+                    substitutedInAtMin = player.substitutedInAtMin,
+                    substitutedOutAtMin = player.substitutedOutAtMin,
                 )
             }
         )
+    }
+
+    private fun detectClubLineupStatus(player: ComunioFootballPlayer): ClubLineupStatus {
+        return when (player.active) {
+            ComunioFootballPlayer.Active.Active -> {
+                // active player - probably after match start
+                if (player.substitutedInAtMin != null) {
+                    ClubLineupStatus.StartOnBench
+                } else {
+                    ClubLineupStatus.StartOnField
+                }
+            }
+
+            ComunioFootballPlayer.Active.ProperlyActive -> ClubLineupStatus.StartOnField
+            ComunioFootballPlayer.Active.Bench -> ClubLineupStatus.StartOnBench
+            ComunioFootballPlayer.Active.Unknow -> ClubLineupStatus.NotInSquad
+        }
+
     }
 }
