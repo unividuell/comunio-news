@@ -6,7 +6,7 @@ import org.unividuell.news.comunio.AppConfig
 import org.unividuell.news.comunio.lineup.MatchLineupClient
 import org.unividuell.news.comunio.lineup.MatchLineupClient.MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer
 import org.unividuell.news.comunio.lineup.MemberLineupClient
-import org.unividuell.news.comunio.match.MatchComposer.MatchComposerOutput.AiClub.Player.ClubLineupStatus
+import org.unividuell.news.comunio.match.Player.ClubLineupStatus
 
 @Component
 class MatchComposer(
@@ -14,35 +14,6 @@ class MatchComposer(
     private val matchLineupClient: MatchLineupClient,
     private val memberLineupClient: MemberLineupClient,
 ) {
-
-    data class MatchComposerOutput(
-        val homeClub: AiClub,
-        val awayClub: AiClub,
-    ) {
-        data class AiClub(
-            val name: String,
-            val lineup: List<Player>,
-        ) {
-            data class Player(
-                val name: String,
-                val member: String?,
-                val usedByMember: Boolean?,
-                val position: String,
-                val goals: Int,
-                val penaltyGoals: Int,
-                val points: Int?,
-                val clubLineupStatus: ClubLineupStatus,
-                val substitutedInAtMin: Int?,
-                val substitutedOutAtMin: Int?,
-            ) {
-                enum class ClubLineupStatus {
-                    StartOnField,
-                    StartOnBench,
-                    NotInSquad,
-                }
-            }
-        }
-    }
 
     @Cacheable(value = ["matchComposer"], key = "#groupOrderId")
     fun composeMatch(groupOrderId: Int): List<MatchComposerOutput> {
@@ -63,13 +34,14 @@ class MatchComposer(
     private fun composeClub(
         club: MatchLineupClient.MatchLineupOutput.LineupOutput.ComunioClub,
         memberLineup: MemberLineupClient.MemberLineupOutput,
-    ): MatchComposerOutput.AiClub {
-        return MatchComposerOutput.AiClub(
+    ): AiClub {
+        return AiClub(
             name = appConfig.clubIdMapping.first { it.cid == club.cid }.name,
             lineup = club.lineup.players.map { player ->
-                val member = memberLineup.members.find { it.lineup.any { memberPlayer -> memberPlayer.playerId == player.pid } }
+                val member =
+                    memberLineup.members.find { it.lineup.any { memberPlayer -> memberPlayer.playerId == player.pid } }
                 val memberPlayer = member?.lineup?.find { it.playerId == player.pid }
-                MatchComposerOutput.AiClub.Player(
+                Player(
                     name = player.name,
                     member = member?.name,
                     usedByMember = memberPlayer?.active,

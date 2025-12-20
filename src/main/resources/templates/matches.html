@@ -31,7 +31,12 @@
   </section>
 </main>
 </body>
-<table class="striped" style="height: min-content; font-size: small;" th:fragment="lineupTable(lineups)" th:with="lineups=${lineups}">
+<table
+    class="striped" style="height: min-content; font-size: small;"
+    th:fragment="lineupTable(lineups)"
+    th:with="lineups=${lineups}"
+>
+  <!--/*@thymesVar id="lineups" type="java.util.List<org.unividuell.news.comunio.match.Player>"*/-->
   <thead>
   <tr>
     <th scope="col">Name</th>
@@ -40,6 +45,7 @@
   </thead>
   <tbody>
   <tr th:each="lineup : ${lineups}">
+    <!--/*@thymesVar id="lineup" type="org.unividuell.news.comunio.match.Player"*/-->
     <th scope="row" th:text="${lineup.name}"></th>
     <td>
       <div th:if="${lineup.member != null}">
