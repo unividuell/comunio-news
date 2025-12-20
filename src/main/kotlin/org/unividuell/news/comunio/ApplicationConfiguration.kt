@@ -5,6 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 @ConfigurationProperties(prefix = "comunio")
 data class ComunioConfig(
     val cid: Number,
+    val season: Number,
     val stats: ComunioStatsConfig,
 ) {
     data class ComunioStatsConfig(
@@ -20,7 +21,9 @@ data class ComunioConfig(
 }
 
 @ConfigurationProperties(prefix = "app")
-data class AppConfig(val clubIdMapping: List<ClubIdMapping>) {
+data class AppConfig(
+    val clubIdMapping: List<ClubIdMapping>
+) {
     data class ClubIdMapping(
         val name: String,
         val olid: Int,
