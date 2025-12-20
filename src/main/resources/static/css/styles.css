@@ -1,0 +1,14 @@
+:root {
+    --pico-border-radius: 2rem;
+    --pico-typography-spacing-vertical: 1.5rem;
+    --pico-form-element-spacing-vertical: 1rem;
+    --pico-form-element-spacing-horizontal: 1.25rem;
+}
+h1 {
+    --pico-font-family: Pacifico, cursive;
+    --pico-font-weight: 400;
+    --pico-typography-spacing-vertical: 0.5rem;
+}
+button {
+    --pico-font-weight: 700;
+}

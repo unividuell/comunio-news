@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <!-- CSRF Meta Tags -->
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+    <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE">news.zingler46</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" >
+    <script src="https://unpkg.com/htmx.org@2.0.8"></script>
+    <!-- common CSS -->
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+
+    <!-- site specific CSS -->
+    <th:block layout:fragment="styles"></th:block>
+</head>
+<body>
+<header>
+    <nav>
+        <a th:href="@{/}">Home</a>
+        <a th:href="@{/about}">Über uns</a>
+    </nav>
+</header>
+
+<main class="container" layout:fragment="content">
+    <!-- this will be replaced by the site -->
+</main>
+
+<footer>
+    <p>&copy; 2025&mdash;2026 unividuell</p>
+</footer>
+
+<!-- common scripts -->
+<script th:src="@{/js/csrf.js}"></script>
+
+<!-- site specific scripts -->
+<th:block layout:fragment="scripts"></th:block>
+</body>
+</html>

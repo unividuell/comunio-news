@@ -13,7 +13,7 @@ class SecurityConfiguration {
     @Bean
     fun securityFilterChain(httpSecurity: HttpSecurity): SecurityFilterChain {
         return httpSecurity
-            .authorizeHttpRequests { authorizeRequests -> authorizeRequests.anyRequest().permitAll()}
+            .authorizeHttpRequests { authorizeRequests -> authorizeRequests.anyRequest().permitAll() }
             .build()
     }
 }
