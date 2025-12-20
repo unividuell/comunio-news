@@ -28,11 +28,11 @@ class MemberLineupClient(
                 memberId = memberId,
                 name = memberName,
                 lineup = response.lineups.values
-                    .filter { it.ownerId.toInt() == memberId }
+                    .filter { it.ownerId.toLong() == memberId }
                     .map { lineup ->
                         MemberLineupOutput.ComunioMember.MemberPlayer(
-                            playerId = lineup.pid.toInt(),
-                            clubId = lineup.clubId.toInt(),
+                            playerId = lineup.pid.toLong(),
+                            clubId = lineup.clubId.toLong(),
                             position = lineup.pos,
                             active = lineup.active == "1"
                         )
@@ -64,17 +64,17 @@ class MemberLineupClient(
     }
 
     data class MemberLineupOutput(
-        val comunioGamedayId: Number,
+        val comunioGamedayId: Long,
         val members: List<ComunioMember>,
     ) {
         data class ComunioMember(
-            val memberId: Number,
+            val memberId: Long,
             val name: String,
             val lineup: List<MemberPlayer>,
         ) {
             data class MemberPlayer(
-                val playerId: Number,
-                val clubId: Number,
+                val playerId: Long,
+                val clubId: Long,
                 val position: String,
                 val active: Boolean,
             )
@@ -82,16 +82,16 @@ class MemberLineupClient(
     }
 
     data class GameResponse(
-        val season: Int,
-        val gamedayId: Int,
+        val season: Long,
+        val gamedayId: Long,
         /**
-         * Map von Spieler-ID (Int) zu LineupDetails
+         * Football-Player-ID to LineupDetails
          */
-        val lineups: Map<Int, LineupDetails>,
+        val lineups: Map<Long, LineupDetails>,
         /**
-         * Map von Member-ID (Int) zu Member-Name (String)
+         * Member-ID to Member-Name
          */
-        val members: Map<Int, String>
+        val members: Map<Long, String>
     )
 
     data class LineupDetails(
