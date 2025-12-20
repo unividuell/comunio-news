@@ -52,6 +52,8 @@ class MatchLineupClient(
                                         penaltyGoals = it.pens,
                                         points = it.points,
                                         active = LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer.Active.byId(it.active),
+                                        substitutedInAtMin = it.subIn,
+                                        substitutedOutAtMin = it.subOut,
                                     )
                                 }
                             )
@@ -73,6 +75,8 @@ class MatchLineupClient(
                                         penaltyGoals = it.pens,
                                         points = it.points,
                                         active = LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer.Active.byId(it.active),
+                                        substitutedInAtMin = it.subIn,
+                                        substitutedOutAtMin = it.subOut,
                                     )
                                 }
                             )
@@ -165,6 +169,8 @@ class MatchLineupClient(
                     val penaltyGoals: Int,
                     val points: Int?,
                     val active: Active,
+                    val substitutedInAtMin: Int?,
+                    val substitutedOutAtMin: Int?,
                 ) {
                     enum class Position(val id: String) {
                         // "t", "a", "m", "s"
