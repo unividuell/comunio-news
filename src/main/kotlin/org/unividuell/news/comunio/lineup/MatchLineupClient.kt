@@ -12,7 +12,7 @@ import org.springframework.web.client.RestClient
 import org.springframework.web.client.body
 
 @Component
-class LineupClient(
+class MatchLineupClient(
     private val restClient: RestClient.Builder,
     private val htmlJsonConverter: JacksonJsonHttpMessageConverter,
 ) {
@@ -148,7 +148,8 @@ class LineupClient(
             ) {
                 enum class LineupDetails(val id: Int) {
                     Expected(1),
-                    Final(2),
+                    Playing(2),
+                    Over(3),
                     Unknow(-1);
                     companion object {
                         fun byId(id: Int): LineupDetails {

@@ -1,13 +1,11 @@
 package org.unividuell.news.comunio.match
 
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.modulith.test.ApplicationModuleTest
 import org.springframework.test.context.TestPropertySource
 import org.unividuell.news.comunio.league.MyLeagueClient
-import org.unividuell.news.comunio.lineup.LineupClient
-import org.unividuell.news.comunio.openligadb.OpenLigaDbClient
+import org.unividuell.news.comunio.lineup.MatchLineupClient
 import tools.jackson.databind.json.JsonMapper
 
 @ApplicationModuleTest(mode = ApplicationModuleTest.BootstrapMode.DIRECT_DEPENDENCIES)
@@ -26,7 +24,7 @@ class MatchComposerTest {
     lateinit var sut: MatchComposer
 
     @Autowired
-    lateinit var lineupClient: LineupClient
+    lateinit var matchLineupClient: MatchLineupClient
 
     @Autowired
     lateinit var myLeagueClient: MyLeagueClient

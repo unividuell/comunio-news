@@ -3,12 +3,12 @@ package org.unividuell.news.comunio.match
 import org.springframework.stereotype.Component
 import org.unividuell.news.comunio.AppConfig
 import org.unividuell.news.comunio.league.MyLeagueClient
-import org.unividuell.news.comunio.lineup.LineupClient
+import org.unividuell.news.comunio.lineup.MatchLineupClient
 
 @Component
 class MatchComposer(
     private val appConfig: AppConfig,
-    private val lineupClient: LineupClient,
+    private val matchLineupClient: MatchLineupClient,
     private val myLeagueClient: MyLeagueClient,
 ) {
 
@@ -34,7 +34,7 @@ class MatchComposer(
     }
 
     fun composeMatch(groupOrderId: Int): List<Match> {
-        val lineups = lineupClient.scrape(groupOrderId = groupOrderId)
+        val lineups = matchLineupClient.scrape(groupOrderId = groupOrderId)
         val myLeague = myLeagueClient.scrape()
 
         return lineups
@@ -65,7 +65,7 @@ class MatchComposer(
 
     private fun composeClub(
         clubName: String,
-        lineup: LineupClient.LineupOutput.ComunioClub.ClubLineup,
+        lineup: MatchLineupClient.LineupOutput.ComunioClub.ClubLineup,
         manager: (Long) -> MyLeagueClient.ComunioPlayerOutput?,
     ): Match.AiClub {
         return Match.AiClub(
