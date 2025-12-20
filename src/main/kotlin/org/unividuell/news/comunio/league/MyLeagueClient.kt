@@ -21,38 +21,10 @@ import java.time.Duration
 @Component
 class MyLeagueClient(
     private val comunioConfig: ComunioConfig,
+    private val restClient: RestClient.Builder,
 ) {
 
     private val logger = KotlinLogging.logger {  }
-
-    private val rateLimiter = RateLimiter
-        .of(
-            "comunio-api",
-            RateLimiterConfig.custom()
-                // max 5 requests during 5 seconds
-                .limitForPeriod(5)
-                .limitRefreshPeriod(Duration.ofSeconds(5))
-                // parks thread for up to 10 seconds before throwing a RequestNotPermitted exception
-                .timeoutDuration(Duration.ofSeconds(10))
-                .build()
-        )
-
-    private val httpClient = HttpClients.custom()
-        // cookie handling
-        .setDefaultCookieStore(BasicCookieStore())
-        .build()
-
-    private val restClient = RestClient.builder()
-        .requestFactory(HttpComponentsClientHttpRequestFactory(httpClient))
-        .baseUrl(comunioConfig.stats.baseUrl)
-        .defaultHeader("User-Agent", comunioConfig.stats.userAgent)
-        .defaultHeader("Accept-Language", "en-US,en;q=0.9")
-        // be careful: logbook does not see headers added by the underlying client5 client (like req-header `Cookie`)
-//        .requestInterceptor(LogbookClientHttpRequestInterceptor(logbook))
-        .requestInterceptor { request, body, execution ->
-            RateLimiter.waitForPermission(rateLimiter)
-            execution.execute(request, body)
-        }
 
     fun scrape(): List<ComunioPlayerOutput> {
         logger.info { "Start scraping my league" }

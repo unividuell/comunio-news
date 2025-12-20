@@ -2,8 +2,6 @@ package org.unividuell.news.comunio.lineup
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.github.resilience4j.ratelimiter.RateLimiter
-import io.github.resilience4j.ratelimiter.RateLimiterConfig
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
@@ -12,41 +10,24 @@ import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.body
-import org.unividuell.news.comunio.ComunioConfig
-import org.zalando.logbook.Logbook
-import org.zalando.logbook.spring.LogbookClientHttpRequestInterceptor
-import java.time.Duration
 
 @Component
 class LineupClient(
-    comunioConfig: ComunioConfig,
-    logbook: Logbook,
+    private val restClient: RestClient.Builder,
+    private val htmlJsonConverter: JacksonJsonHttpMessageConverter,
 ) {
 
     private val logger = KotlinLogging.logger {  }
 
-    private val rateLimiter = RateLimiter
-        .of(
-            "comunio-api",
-            RateLimiterConfig.custom()
-                // max 3 requests during 5 seconds
-                .limitForPeriod(3)
-                .limitRefreshPeriod(Duration.ofSeconds(5))
-                // parks thread for up to 10 seconds before throwing a RequestNotPermitted exception
-                .timeoutDuration(Duration.ofSeconds(10))
-                .build()
-        ).also { rateLimiter ->
-            rateLimiter.eventPublisher
-                .onSuccess { logger.debug { "Rate Limiter: Permit acquired for '${it.rateLimiterName}'" } }
-                .onFailure { logger.warn { "Rate Limiter: Request denied/timed out for '${it.rateLimiterName}'! ${it.eventType}" } }
-        }
-
-    private val restClient = RestClient.builder()
-        .defaultHeader(comunioConfig.stats.userAgent)
-        .baseUrl(comunioConfig.stats.baseUrl)
-        .requestInterceptor(LogbookClientHttpRequestInterceptor(logbook))
-
+    /**
+     * scraps:
+     * 0. GET https://stats.comunio.de/matchday/2025-26/15
+     * 1. GET https://stats.comunio.de/xhr/matchDetails.php?mid=7663
+     * .
+     * 8. GET https://stats.comunio.de/xhr/matchDetails.php?mid=7671
+     */
     fun scrape(groupOrderId: Int): List<LineupOutput> {
+        logger.info { "Scraping lineup for groupOrderId $groupOrderId" }
         return fetchLineUp(groupOrderId = groupOrderId)
             .let { parseLineup(it) }
             .let { selectMatches(it) }
@@ -99,6 +80,8 @@ class LineupClient(
                     },
                     state = LineupOutput.ComunioClub.MatchState.byId(matchDetails?.state)
                 )
+            }.also {
+                logger.info { "Scraped lineup for groupOrderId $groupOrderId" }
             }
     }
 
@@ -130,30 +113,23 @@ class LineupClient(
         }
     }
 
-    // comunio lies about the content-type (`text/html` but it is `application/json`)!
-    private val htmlJsonConverter = JacksonJsonHttpMessageConverter().apply {
-        supportedMediaTypes = listOf(MediaType.APPLICATION_JSON, MediaType.TEXT_HTML)
-    }
-
     private fun fetchMatchId(matchId: Int): Pair<Int, MatchDetails?> {
-        return RateLimiter.decorateSupplier(rateLimiter) {
-            restClient
-                .configureMessageConverters { converters ->
-                    converters.addCustomConverter(htmlJsonConverter)
-                }
-                .build()
-                .get()
-                .uri { uriBuilder ->
-                    uriBuilder
-                        .path("xhr/matchDetails.php")
-                        .queryParam("mid", matchId)
-                        .build()
-                }
-                .accept(MediaType.APPLICATION_JSON)
-                .retrieve()
-                .body<MatchDetails>()
-                ?.let { matchDetails -> matchId to matchDetails } ?: (matchId to null)
-        }.get()
+        return restClient
+            .configureMessageConverters { converters ->
+                converters.addCustomConverter(htmlJsonConverter)
+            }
+            .build()
+            .get()
+            .uri { uriBuilder ->
+                uriBuilder
+                    .path("xhr/matchDetails.php")
+                    .queryParam("mid", matchId)
+                    .build()
+            }
+            .accept(MediaType.APPLICATION_JSON)
+            .retrieve()
+            .body<MatchDetails>()
+            ?.let { matchDetails -> matchId to matchDetails } ?: (matchId to null)
     }
 
     data class LineupOutput(
