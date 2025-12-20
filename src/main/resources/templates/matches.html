@@ -1,0 +1,53 @@
+<!DOCTYPE HTML>
+<html
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layouts/main}">
+<head>
+  <title>HTMLX</title>
+  <th:block layout:fragment="styles">
+    <link rel="stylesheet" th:href="@{/css/matches.css}">
+  </th:block>
+</head>
+<body>
+<main layout:fragment="content">
+  <section>
+    <h1>Htmx Demo</h1>
+    <div id="parent-div"></div>
+    <button hx-post="/clicked"
+            hx-trigger="click"
+            hx-target="#parent-div"
+            hx-swap="outerHTML">
+      Click Me!
+    </button>
+  </section>
+  <section>
+    <div th:each="match : ${matches}">
+      <h2 style="text-align: center;" th:text="${match.homeClub.name} + ' — ' + ${match.awayClub.name}"></h2>
+      <div class="grid">
+        <table th:replace="~{:: lineupTable(${match.homeClub.lineup})}"></table>
+        <table th:replace="~{:: lineupTable(${match.awayClub.lineup})}"></table>
+      </div>
+    </div>
+  </section>
+</main>
+</body>
+<table class="striped" style="height: min-content; font-size: small;" th:fragment="lineupTable(lineups)" th:with="lineups=${lineups}">
+  <thead>
+  <tr>
+    <th scope="col">Name</th>
+    <th scope="col">Member</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr th:each="lineup : ${lineups}">
+    <th scope="row" th:text="${lineup.name}"></th>
+    <td>
+      <div th:if="${lineup.member != null}">
+        <span th:text="${lineup.member}"></span>
+        <span th:text="${lineup.usedByMember == true ? '(yes)' : '(no)'}" style="margin-left: 0.2em;"></span>
+      </div>
+    </td>
+  </tr>
+  </tbody>
+</table>
+</html>

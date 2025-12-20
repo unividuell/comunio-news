@@ -16,7 +16,7 @@ class MatchController(
     fun index(model: Model): String {
         val matches = matchComposer.composeMatch(groupOrderId = 15)
         model.addAttribute("matches", matches)
-        return "index"
+        return "matches"
     }
 
     @PostMapping("/clicked")
