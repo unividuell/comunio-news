@@ -20,7 +20,7 @@ class MemberLineupClient(
      * scraps:
      * 1. GET https://stats.comunio.de/xhr/lineup.php?cid=13742756&s=2026&gid=395809&com=1
      */
-    fun scrape(comunioGamedayId: Int): MemberLineupOutput {
+    fun scrape(comunioGamedayId: Long): MemberLineupOutput {
         logger.info { "Scraping member lineup for comunioGamedayId $comunioGamedayId" }
         val response = fetch(comunioGamedayId = comunioGamedayId)
         val members = response.members.map { (memberId, memberName) ->
@@ -43,7 +43,7 @@ class MemberLineupClient(
         return MemberLineupOutput(comunioGamedayId = response.gamedayId, members = members)
     }
 
-    private fun fetch(comunioGamedayId: Int): GameResponse {
+    private fun fetch(comunioGamedayId: Long): GameResponse {
         return restClient
             .configureMessageConverters { converters ->
                 converters.addCustomConverter(htmlJsonConverter)

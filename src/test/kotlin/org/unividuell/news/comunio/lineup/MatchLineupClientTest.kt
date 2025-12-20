@@ -1,5 +1,6 @@
 package org.unividuell.news.comunio.lineup
 
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.modulith.test.ApplicationModuleTest
@@ -19,11 +20,13 @@ class MatchLineupClientTest {
     @Autowired
     lateinit var json: JsonMapper
 
-//    @Disabled
     @Test
     fun `it should scrape the lineup`() {
+        // act
         val actual = sut.scrape(groupOrderId = 15)
-        actual.forEach { println(json.writeValueAsString(it)) }
+        // assert
+        actual.comunioGamedayId shouldBe 395809
+        actual.matches.forEach { println(json.writeValueAsString(it)) }
     }
 
 }

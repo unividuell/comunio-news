@@ -35,9 +35,8 @@ class MatchComposerTest {
     fun `it should compose a match`() {
         // arrange
         val groupOrderId = 15
-        val comunioGameId = 395809
         // act
-        val actual = sut.composeMatch(groupOrderId = groupOrderId, comunioGameId = comunioGameId)
+        val actual = sut.composeMatch(groupOrderId = groupOrderId)
         // assert
         actual.forEach {
             println(json.writeValueAsString(it))

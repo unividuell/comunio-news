@@ -3,7 +3,7 @@ package org.unividuell.news.comunio.match
 import org.springframework.stereotype.Component
 import org.unividuell.news.comunio.AppConfig
 import org.unividuell.news.comunio.lineup.MatchLineupClient
-import org.unividuell.news.comunio.lineup.MatchLineupClient.LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer
+import org.unividuell.news.comunio.lineup.MatchLineupClient.MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer
 import org.unividuell.news.comunio.lineup.MemberLineupClient
 import org.unividuell.news.comunio.match.MatchComposer.MatchComposerOutput.AiClub.Player.ClubLineupStatus
 
@@ -43,11 +43,12 @@ class MatchComposer(
         }
     }
 
-    fun composeMatch(groupOrderId: Int, comunioGameId: Int): List<MatchComposerOutput> {
+    fun composeMatch(groupOrderId: Int): List<MatchComposerOutput> {
         val matchLineup = matchLineupClient.scrape(groupOrderId = groupOrderId)
-        val memberLineup = memberLineupClient.scrape(comunioGamedayId = comunioGameId)
+        val memberLineup = memberLineupClient.scrape(comunioGamedayId = matchLineup.comunioGamedayId)
 
         return matchLineup
+            .matches
             .filter { it.homeClub != null && it.awayClub != null }
             .map { match ->
                 MatchComposerOutput(
@@ -58,13 +59,13 @@ class MatchComposer(
     }
 
     private fun composeClub(
-        club: MatchLineupClient.LineupOutput.ComunioClub,
+        club: MatchLineupClient.MatchLineupOutput.LineupOutput.ComunioClub,
         memberLineup: MemberLineupClient.MemberLineupOutput,
     ): MatchComposerOutput.AiClub {
         return MatchComposerOutput.AiClub(
             name = appConfig.clubIdMapping.first { it.cid == club.cid }.name,
             lineup = club.lineup.players.map { player ->
-                val member = memberLineup.members.find { it.lineup.any { it.playerId == player.pid } }
+                val member = memberLineup.members.find { it.lineup.any { memberPlayer -> memberPlayer.playerId == player.pid } }
                 val memberPlayer = member?.lineup?.find { it.playerId == player.pid }
                 MatchComposerOutput.AiClub.Player(
                     name = player.name,

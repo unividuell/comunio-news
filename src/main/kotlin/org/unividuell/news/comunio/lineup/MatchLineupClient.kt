@@ -26,67 +26,72 @@ class MatchLineupClient(
      * .
      * 8. GET https://stats.comunio.de/xhr/matchDetails.php?mid=7671
      */
-    fun scrape(groupOrderId: Int): List<LineupOutput> {
+    fun scrape(groupOrderId: Int): MatchLineupOutput {
         logger.info { "Scraping lineup for groupOrderId $groupOrderId" }
-        return fetchLineUp(groupOrderId = groupOrderId)
-            .let { parseLineup(it) }
-            .let { selectMatches(it) }
-            .let { selectMatchIds(it) }
-            .map { fetchMatchId(it) }
-            .map { (matchId, matchDetails) ->
-                LineupOutput(
-                    matchId = matchId,
-                    homeClub = matchDetails?.let { matchDetails ->
-                        LineupOutput.ComunioClub(
-                            cid = matchDetails.homeClubId,
-                            lineup = LineupOutput.ComunioClub.ClubLineup(
-                                details = LineupOutput.ComunioClub.ClubLineup.LineupDetails.byId(id = matchDetails.details),
-                                players = matchDetails.homePlayers.map {
-                                    LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer(
-                                        pid = it.playerId,
-                                        name = it.name,
-                                        position = LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer.Position.byId(
-                                            it.pos
-                                        ),
-                                        goals = it.goals,
-                                        penaltyGoals = it.pens,
-                                        points = it.points,
-                                        active = LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer.Active.byId(it.active),
-                                        substitutedInAtMin = it.subIn,
-                                        substitutedOutAtMin = it.subOut,
-                                    )
-                                }
-                            )
+        val fetch = fetchLineUp(groupOrderId = groupOrderId)
+        val parsed = parseLineup(body = fetch)
+        val comunioGamedayId = selectComunioGamedayId(document = parsed)
+        val matchElements = selectMatches(document = parsed)
+        val matchIds = selectMatchIds(matches = matchElements)
+        val matches = matchIds.map { fetchMatchId(matchId = it) }
+        val lineups = matches.map { (matchId, matchDetails) ->
+            MatchLineupOutput.LineupOutput(
+                matchId = matchId,
+                homeClub = matchDetails?.let { matchDetails ->
+                    MatchLineupOutput.LineupOutput.ComunioClub(
+                        cid = matchDetails.homeClubId,
+                        lineup = MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup(
+                            details = MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup.LineupDetails.byId(id = matchDetails.details),
+                            players = matchDetails.homePlayers.map {
+                                MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer(
+                                    pid = it.playerId,
+                                    name = it.name,
+                                    position = MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer.Position.byId(
+                                        it.pos
+                                    ),
+                                    goals = it.goals,
+                                    penaltyGoals = it.pens,
+                                    points = it.points,
+                                    active = MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer.Active.byId(
+                                        it.active
+                                    ),
+                                    substitutedInAtMin = it.subIn,
+                                    substitutedOutAtMin = it.subOut,
+                                )
+                            }
                         )
-                    },
-                    awayClub = matchDetails?.let { matchDetails ->
-                        LineupOutput.ComunioClub(
-                            cid = matchDetails.awayClubId,
-                            lineup = LineupOutput.ComunioClub.ClubLineup(
-                                details = LineupOutput.ComunioClub.ClubLineup.LineupDetails.byId(matchDetails.details),
-                                players = matchDetails.awayPlayers.map {
-                                    LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer(
-                                        pid = it.playerId,
-                                        name = it.name,
-                                        position = LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer.Position.byId(
-                                            it.pos
-                                        ),
-                                        goals = it.goals,
-                                        penaltyGoals = it.pens,
-                                        points = it.points,
-                                        active = LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer.Active.byId(it.active),
-                                        substitutedInAtMin = it.subIn,
-                                        substitutedOutAtMin = it.subOut,
-                                    )
-                                }
-                            )
+                    )
+                },
+                awayClub = matchDetails?.let { matchDetails ->
+                    MatchLineupOutput.LineupOutput.ComunioClub(
+                        cid = matchDetails.awayClubId,
+                        lineup = MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup(
+                            details = MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup.LineupDetails.byId(matchDetails.details),
+                            players = matchDetails.awayPlayers.map {
+                                MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer(
+                                    pid = it.playerId,
+                                    name = it.name,
+                                    position = MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer.Position.byId(
+                                        it.pos
+                                    ),
+                                    goals = it.goals,
+                                    penaltyGoals = it.pens,
+                                    points = it.points,
+                                    active = MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer.Active.byId(
+                                        it.active
+                                    ),
+                                    substitutedInAtMin = it.subIn,
+                                    substitutedOutAtMin = it.subOut,
+                                )
+                            }
                         )
-                    },
-                    state = LineupOutput.ComunioClub.MatchState.byId(matchDetails?.state)
-                )
-            }.also {
-                logger.info { "Scraped lineup for groupOrderId $groupOrderId" }
-            }
+                    )
+                },
+                state = MatchLineupOutput.LineupOutput.ComunioClub.MatchState.byId(matchDetails?.state),
+            )
+        }
+        logger.info { "Scraped lineup for groupOrderId $groupOrderId ($comunioGamedayId)" }
+        return MatchLineupOutput(comunioGamedayId = comunioGamedayId, matches = lineups)
     }
 
     private fun fetchLineUp(groupOrderId: Int): String {
@@ -103,6 +108,13 @@ class MatchLineupClient(
 
     private fun parseLineup(body: String): Document {
         return Jsoup.parse(body)
+    }
+
+    private fun selectComunioGamedayId(document: Document): Long {
+        return document.selectFirst("div#comMatchday")
+            ?.text()
+            ?.toLongOrNull()
+            ?: throw IllegalStateException("Could not fetch comunioGamedayId!")
     }
 
     private fun selectMatches(document: Document): Elements {
@@ -136,74 +148,86 @@ class MatchLineupClient(
             ?.let { matchDetails -> matchId to matchDetails } ?: (matchId to null)
     }
 
-    data class LineupOutput(
-        val matchId: Int,
-        val homeClub: ComunioClub?,
-        val awayClub: ComunioClub?,
-        val state: ComunioClub.MatchState,
+    data class MatchLineupOutput(
+        val comunioGamedayId: Long,
+        val matches: List<LineupOutput>,
     ) {
-        data class ComunioClub(
-            val cid: Int,
-            val lineup: ClubLineup,
+        data class LineupOutput(
+            val matchId: Int,
+            val homeClub: ComunioClub?,
+            val awayClub: ComunioClub?,
+            val state: ComunioClub.MatchState,
         ) {
-            data class ClubLineup(
-                val details: LineupDetails,
-                val players: List<ComunioFootballPlayer>,
+            data class ComunioClub(
+                val cid: Int,
+                val lineup: ClubLineup,
             ) {
-                enum class LineupDetails(val id: Int) {
-                    Expected(1),
-                    Playing(2),
-                    Over(3),
-                    Unknow(-1);
-                    companion object {
-                        fun byId(id: Int): LineupDetails {
-                            return entries.firstOrNull { it.id == id } ?: Unknow
-                        }
-                    }
-                }
-                data class ComunioFootballPlayer(
-                    val pid: Long,
-                    val name: String,
-                    val position: Position,
-                    val goals: Int,
-                    val penaltyGoals: Int,
-                    val points: Int?,
-                    val active: Active,
-                    val substitutedInAtMin: Int?,
-                    val substitutedOutAtMin: Int?,
+                data class ClubLineup(
+                    val details: LineupDetails,
+                    val players: List<ComunioFootballPlayer>,
                 ) {
-                    enum class Position(val id: String) {
-                        // "t", "a", "m", "s"
-                        Goalkeeper("t"),
-                        Defender("a"),
-                        Midfielder("m"),
-                        Forward("s");
+                    enum class LineupDetails(val id: Int) {
+                        Expected(1),
+                        Playing(2),
+                        Over(3),
+                        Unknow(-1);
+
                         companion object {
-                            fun byId(id: String?): Position {
-                                return entries.first { it.id == id }
+                            fun byId(id: Int): LineupDetails {
+                                return entries.firstOrNull { it.id == id } ?: Unknow
                             }
                         }
                     }
-                    enum class Active(val id: Int) {
-                        ProperlyActive(-1),
-                        Active(1),
-                        Bench(-2),
-                        Unknow(-1000);
-                        companion object {
-                            fun byId(id: Int): Active = entries.firstOrNull { it.id == id } ?: Unknow
+
+                    data class ComunioFootballPlayer(
+                        val pid: Long,
+                        val name: String,
+                        val position: Position,
+                        val goals: Int,
+                        val penaltyGoals: Int,
+                        val points: Int?,
+                        val active: Active,
+                        val substitutedInAtMin: Int?,
+                        val substitutedOutAtMin: Int?,
+                    ) {
+                        enum class Position(val id: String) {
+                            // "t", "a", "m", "s"
+                            Goalkeeper("t"),
+                            Defender("a"),
+                            Midfielder("m"),
+                            Forward("s");
+
+                            companion object {
+                                fun byId(id: String?): Position {
+                                    return entries.first { it.id == id }
+                                }
+                            }
+                        }
+
+                        enum class Active(val id: Int) {
+                            ProperlyActive(-1),
+                            Active(1),
+                            Bench(-2),
+                            Unknow(-1000);
+
+                            companion object {
+                                fun byId(id: Int): Active = entries.firstOrNull { it.id == id } ?: Unknow
+                            }
                         }
                     }
                 }
-            }
-            enum class MatchState(val id: String) {
-                FirstHalf("1st"),
-                HalfTime("HT"),
-                SecondHalf("2nd"),
-                FullTime("FT"),
-                Unknow("");
-                companion object {
-                    fun byId(id: String?): MatchState {
-                        return entries.firstOrNull { it.id == id } ?: Unknow
+
+                enum class MatchState(val id: String) {
+                    FirstHalf("1st"),
+                    HalfTime("HT"),
+                    SecondHalf("2nd"),
+                    FullTime("FT"),
+                    Unknow("");
+
+                    companion object {
+                        fun byId(id: String?): MatchState {
+                            return entries.firstOrNull { it.id == id } ?: Unknow
+                        }
                     }
                 }
             }
