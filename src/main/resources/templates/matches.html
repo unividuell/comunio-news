@@ -41,18 +41,29 @@
   <tr>
     <th scope="col">Name</th>
     <th scope="col">Member</th>
+    <th scope="col" class="spoiler">Goals</th>
+    <th scope="col" class="spoiler" style="text-align: end;">Points</th>
   </tr>
   </thead>
   <tbody>
   <tr th:each="lineup : ${lineups}">
     <!--/*@thymesVar id="lineup" type="org.unividuell.news.comunio.match.Player"*/-->
-    <th scope="row" th:text="${lineup.name}"></th>
+    <th scope="row" th:text="${lineup.name}">
     <td>
       <div th:if="${lineup.member != null}">
-        <span th:text="${lineup.member}"></span>
-        <span th:text="${lineup.usedByMember == true ? '(yes)' : '(no)'}" style="margin-left: 0.2em;"></span>
+        <s th:if="${lineup.usedByMember == false}" th:text="${lineup.member}"></s>
+        <b th:if="${lineup.usedByMember == true}" th:text="${lineup.member}"></b>
       </div>
     </td>
+    <td class="spoiler">
+      <div th:if="${lineup.goals > 0}">
+        <span th:each="i : ${#numbers.sequence(1, lineup.goals)}">⚽</span>
+      </div>
+      <div th:if="${lineup.penaltyGoals > 0}">
+        <span th:each="i : ${#numbers.sequence(1, lineup.penaltyGoals)}" style="opacity: 0.5;">⚽</span>
+      </div>
+    </td>
+    <td th:text="${lineup.points}" class="spoiler" style="text-align: end;"></td>
   </tr>
   </tbody>
 </table>
