@@ -1,5 +1,6 @@
 package org.unividuell.news.comunio.lineup
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
@@ -13,11 +14,14 @@ class MemberLineupClient(
     private val htmlJsonConverter: JacksonJsonHttpMessageConverter,
 ) {
 
+    private val logger = KotlinLogging.logger {  }
+
     /**
      * scraps:
      * 1. GET https://stats.comunio.de/xhr/lineup.php?cid=13742756&s=2026&gid=395809&com=1
      */
     fun scrape(comunioGamedayId: Int): MemberLineupOutput {
+        logger.info { "Scraping member lineup for comunioGamedayId $comunioGamedayId" }
         val response = fetch(comunioGamedayId = comunioGamedayId)
         val members = response.members.map { (memberId, memberName) ->
             MemberLineupOutput.ComunioMember(
@@ -35,6 +39,7 @@ class MemberLineupClient(
                     }
             )
         }
+        logger.info { "Scraped member lineup for comunioGamedayId $comunioGamedayId" }
         return MemberLineupOutput(comunioGamedayId = response.gamedayId, members = members)
     }
 
