@@ -11,9 +11,9 @@ import org.springframework.test.context.TestPropertySource
     properties = [
         // request header `COOKIE` is set by underlying httpclient - logback does not see this
         // note: `logbook-httpclient5` does not work also
-        // "logging.level.org.zalando.logbook=TRACE",
+        "logging.level.org.zalando.logbook=TRACE",
         // use the build in logging :)
-        "logging.level.org.apache.hc.client5.http.headers=DEBUG",
+        // "logging.level.org.apache.hc.client5.http.headers=DEBUG",
         "spring.ai.openai-sdk.api-key=FOO",
     ],
     locations = ["file:.env"]

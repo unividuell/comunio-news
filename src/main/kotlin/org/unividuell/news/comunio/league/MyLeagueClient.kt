@@ -21,6 +21,15 @@ class MyLeagueClient(
 
     private val logger = KotlinLogging.logger {  }
 
+    /**
+     * scrapes:
+     *  0. GET https://stats.comunio.de/my-league
+     *  1. POST https://stats.comunio.de/cslogin
+     *  2. GET https://stats.comunio.de/my-league_async.php?cid=13742756
+     *  3. GET https://stats.comunio.de/xhr/playerAction.php?action=rgd&i=13095928
+     *  . <all comunio-members>
+     * 13. GET https://stats.comunio.de/xhr/playerAction.php?action=rgd&i=8555052
+     */
     fun scrape(): List<ComunioPlayerOutput> {
         logger.info { "Start scraping my league" }
         val body = fetchMyLeague()
@@ -50,7 +59,11 @@ class MyLeagueClient(
     private fun fetchMyLeagueAsync(): List<ComunioPlayerOutput> {
         val body = restClient.build()
             .get()
-            .uri { uriBuilder -> uriBuilder.path("my-league_async.php").queryParam("cid", comunioConfig.cid).build() }
+            .uri { uriBuilder -> uriBuilder
+                .path("my-league_async.php")
+                .queryParam("cid", comunioConfig.cid)
+                .build()
+            }
             .retrieve()
             .body<String>()
             ?: throw IllegalStateException("No response body from async request!")
