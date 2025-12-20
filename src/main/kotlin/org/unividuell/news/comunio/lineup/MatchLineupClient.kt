@@ -43,21 +43,7 @@ class MatchLineupClient(
                         lineup = MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup(
                             details = MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup.LineupDetails.byId(id = matchDetails.details),
                             players = matchDetails.homePlayers.map {
-                                MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer(
-                                    pid = it.playerId,
-                                    name = it.name,
-                                    position = MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer.Position.byId(
-                                        it.pos
-                                    ),
-                                    goals = it.goals,
-                                    penaltyGoals = it.pens,
-                                    points = it.points,
-                                    active = MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer.Active.byId(
-                                        it.active
-                                    ),
-                                    substitutedInAtMin = it.subIn,
-                                    substitutedOutAtMin = it.subOut,
-                                )
+                                mapPlayer(player = it)
                             }
                         )
                     )
@@ -68,21 +54,7 @@ class MatchLineupClient(
                         lineup = MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup(
                             details = MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup.LineupDetails.byId(matchDetails.details),
                             players = matchDetails.awayPlayers.map {
-                                MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer(
-                                    pid = it.playerId,
-                                    name = it.name,
-                                    position = MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer.Position.byId(
-                                        it.pos
-                                    ),
-                                    goals = it.goals,
-                                    penaltyGoals = it.pens,
-                                    points = it.points,
-                                    active = MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer.Active.byId(
-                                        it.active
-                                    ),
-                                    substitutedInAtMin = it.subIn,
-                                    substitutedOutAtMin = it.subOut,
-                                )
+                                mapPlayer(player = it)
                             }
                         )
                     )
@@ -92,6 +64,24 @@ class MatchLineupClient(
         }
         logger.info { "Scraped lineup for groupOrderId $groupOrderId ($comunioGamedayId)" }
         return MatchLineupOutput(comunioGamedayId = comunioGamedayId, matches = lineups)
+    }
+
+    private fun mapPlayer(player: Player): MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer {
+        return MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer(
+            pid = player.playerId,
+            name = player.name,
+            position = MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer.Position.byId(
+                player.pos
+            ),
+            goals = player.goals,
+            penaltyGoals = player.pens,
+            points = player.points,
+            active = MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer.Active.byId(
+                player.active
+            ),
+            substitutedInAtMin = player.subIn,
+            substitutedOutAtMin = player.subOut,
+        )
     }
 
     private fun fetchLineUp(groupOrderId: Int): String {
