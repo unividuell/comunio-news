@@ -12,7 +12,8 @@ import org.springframework.data.redis.cache.RedisCacheManager
 import org.springframework.data.redis.connection.RedisConnectionFactory
 import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer
 import org.springframework.data.redis.serializer.RedisSerializationContext
-import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.DefaultTyping
+import tools.jackson.databind.json.JsonMapper
 
 @Configuration
 @EnableCaching
@@ -22,13 +23,24 @@ class CacheConfiguration {
 
     @Bean
     fun cacheManager(connectionFactory: RedisConnectionFactory): RedisCacheManager {
-        val json = ObjectMapper()
+        val json = JsonMapper.builder()
+            .activateDefaultTyping(tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator.builder()
+                .allowIfBaseType(Any::class.java)
+                .build(),
+                DefaultTyping.NON_FINAL
+            )
+            .build()
+
         val config = RedisCacheConfiguration.defaultCacheConfig()
             .entryTtl(java.time.Duration.ofMinutes(30))
+            .disableCachingNullValues()
             .serializeValuesWith(
                 RedisSerializationContext.SerializationPair.fromSerializer(GenericJacksonJsonRedisSerializer(json))
             )
-        return RedisCacheManager.builder(connectionFactory).cacheDefaults(config).build()
+
+        return RedisCacheManager.builder(connectionFactory)
+            .cacheDefaults(config)
+            .build()
     }
 
     @Autowired
