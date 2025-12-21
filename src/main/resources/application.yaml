@@ -1,6 +1,13 @@
 spring:
   application:
     name: comunio-news
+  ai:
+    google:
+      genai:
+        api-key: ${GOOGLE_GENAI_API_KEY}
+        chat:
+          options:
+            model: gemini-3-flash-preview
 comunio:
   cid: 13742756
   # BL season 2025/2026 => 2026
