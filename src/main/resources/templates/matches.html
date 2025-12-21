@@ -11,6 +11,21 @@
 <body>
 <main layout:fragment="content">
   <section>
+    <h2 th:text="'Spieltag' + ${groupOrderId}">Spieltag 15</h2>
+    <div id="article-content_gameday"></div>
+    <button th:hx-get="'/ai/matches/' + ${groupOrderId}"
+            hx-trigger="click"
+            hx-target="#article-content_gameday"
+            hx-swap="outerHTML"
+            hx-indicator="#loader-gameday">
+      Generate Article for whole gameday
+    </button>
+    <!-- Loading Indicator -->
+    <span id="loader-gameday" class="htmx-indicator" style="margin-left: 10px; color: grey;">
+        Generiere... ⏳
+      </span>
+  </section>
+  <section>
     <div th:each="match : ${matches}" class="match-card">
       <h2 style="text-align: center;" th:text="${match.homeClub.name} + ' — ' + ${match.awayClub.name}"></h2>
       <div th:id="'article-content_' + ${match.matchId}"></div>

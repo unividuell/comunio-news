@@ -14,7 +14,9 @@ class MatchController(
 
     @GetMapping("/")
     fun index(model: Model): String {
-        val matches = matchComposer.composeMatch(groupOrderId = 15)
+        val groupOrderId = 15
+        val matches = matchComposer.composeMatch(groupOrderId = groupOrderId)
+        model.addAttribute("groupOrderId", groupOrderId)
         model.addAttribute("matches", matches)
         return "matches"
     }

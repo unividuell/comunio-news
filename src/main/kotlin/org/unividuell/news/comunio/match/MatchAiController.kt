@@ -22,6 +22,8 @@ class MatchAiController(
     private val markdownParser = Parser.builder().build()
     private val htmlRenderer = HtmlRenderer.builder().build()
 
+    val styles = listOf("locker", "jugendlich", "alte Schule", "statistikorientiert", "gefühlvoll")
+
     @GetMapping("/ai/matches/{groupOrderId}/{matchId}", produces = ["text/html"])
     fun match(
         @PathVariable groupOrderId: Int,
@@ -31,7 +33,7 @@ class MatchAiController(
             .composeMatch(groupOrderId = groupOrderId)
         val match = matches.find { it.matchId == matchId } ?: return null
         val context  = json.writeValueAsString(match)
-        val style = listOf("locker", "jugendlich", "alte Schule", "statistikorientiert", "gefühlvoll")
+        val style = styles
             .random()
             .also {
                 logger.info { "selected style: $it" }
@@ -45,7 +47,7 @@ class MatchAiController(
             
             Hier ist der Kontext im JSON-Format: `$context`
             
-            Fokussiere dich auf eine Bewertung der beteiligten Member. 
+            Fokussiere dich auf eine Bewertung der beteiligten Member der Comunio. 
             Fasse dich kurz in max 3 Absätzen.
             Dein Schreibstil: $style
         """.trimIndent()
@@ -55,30 +57,41 @@ class MatchAiController(
                 """<div style="display:none;">writing style: $style</div>"""
     }
 
-    @GetMapping("/ai/matches/{groupOrderId}")
+    @GetMapping("/ai/matches/{groupOrderId}", produces = ["text/html"])
     fun matches(
         @PathVariable groupOrderId: Int,
     ): String? {
         val matches = matchComposer
             .composeMatch(groupOrderId = groupOrderId)
         val context  = json.writeValueAsString(matches)
+        val style = styles
+            .random()
+            .also {
+                logger.info { "selected style: $it" }
+            }
 
         val template = """
-            Schreibe einen Bericht im Stil eines Zeitung-Sport-Reporters.
+            Du bist ein Reporter einer Sport-Zeitung.
+            Antworte IMMER im Markdown-Format.
+            
             Die Daten behandeln den Spieltag {groupOrderId} der Comunio "Zingler46".
             
             Hier ist der Kontext im JSON-Format: `{context}`
             
-            Fokussiere dich auf eine Bewertung der beteiligten Member. 
+            Fokussiere dich auf eine Bewertung der beteiligten Member der Comunio. 
             Widme jedem Manager 1 Absatz.
-            Schreibe in Stil eines Reporters der alten Schule.
+            Dein Schreibstil: {style}
         """.trimIndent()
         val promptTemplate = PromptTemplate(template)
         val prompt = promptTemplate.create(mapOf(
             "groupOrderId" to groupOrderId,
-            "context" to context
+            "context" to context,
+            "style" to style,
         ))
-        return googleGenAiChatModel.call(prompt).result.output.text
+        val markdown = googleGenAiChatModel.call(prompt).result.output.text
+        val document = markdownParser.parse(markdown)
+        return htmlRenderer.render(document) +
+                """<div style="display:none;">writing style: $style</div>"""
     }
 
 }
