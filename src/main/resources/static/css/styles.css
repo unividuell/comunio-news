@@ -1,14 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&display=swap');
+
 :root {
-    --pico-border-radius: 2rem;
-    --pico-typography-spacing-vertical: 1.5rem;
-    --pico-form-element-spacing-vertical: 1rem;
-    --pico-form-element-spacing-horizontal: 1.25rem;
+    /* Farben: Ein warmes "Altpapier"-Weiß und ein weiches "Tinte"-Schwarz */
+    --pico-background-color: #f4f1ea;
+    --pico-color: #2b2b2b;
+    --pico-muted-color: #595959;
+
+    /* Akzentfarbe: Ein klassisches "Redaktion"-Rot */
+    --pico-primary: #8b0000;
+    --pico-primary-background: #8b0000;
+    --pico-primary-underline: rgba(139, 0, 0, 0.5);
+    --pico-primary-hover: #5e0000;
+
+    /* Typografie Global: Gut lesbare Serifenschrift für Fließtext */
+    --pico-font-family: "Merriweather", Georgia, "Times New Roman", serif;
+    --pico-line-height: 1.6;
+
+    /* Layout: Zeitungen sind eckig, nicht rund */
+    --pico-border-radius: 0;
+    --pico-typography-spacing-vertical: 1rem;
+    --pico-form-element-spacing-vertical: 0.75rem;
+    --pico-form-element-spacing-horizontal: 1rem;
 }
+
+/* Überschriften: Kontrastreiche Display-Schrift, wie Schlagzeilen */
+h1, h2, h3, h4, h5, h6 {
+    --pico-font-family: "Playfair Display", "Times New Roman", serif;
+    --pico-font-weight: 900;
+    color: #111;
+    letter-spacing: -0.02em;
+}
+
+/* Spezielle H1 Behandlung als Hauptschlagzeile */
 h1 {
-    --pico-font-family: Pacifico, cursive;
-    --pico-font-weight: 400;
-    --pico-typography-spacing-vertical: 0.5rem;
+    text-transform: uppercase;
+    text-align: center;
+    border-bottom: 3px double #111;
+    border-top: 1px solid #111;
+    padding: 1.5rem 0;
+    margin-bottom: 2rem;
+    font-size: 3rem;
+    line-height: 1.1;
 }
-button {
+
+/* Fließtext im Blocksatz für das Spalten-Feeling */
+p {
+    text-align: justify;
+    hyphens: auto;
+    margin-bottom: 1.25rem;
+}
+
+/* Buttons: Streng, eckig und seriös */
+button,
+input[type="submit"],
+input[type="button"],
+[role="button"] {
     --pico-font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-width: 2px;
+}
+
+/* Zitate hervorheben */
+blockquote {
+    border-left: 4px solid var(--pico-primary);
+    font-style: italic;
+    background: transparent;
+    padding: 1rem 1.5rem;
 }
