@@ -1,0 +1,49 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches: [ "main" ] # Oder dein Standard-Branch
+  workflow_dispatch:      # Erlaubt manuelles Starten
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Schritt 1: Image bauen
+      # Wir konfigurieren den Image-Namen hier direkt, damit er dem GHCR-Standard entspricht
+      - name: Build with Maven
+        run: >
+          ./mvnw -B spring-boot:build-image
+          -Dspring-boot.build-image.imageName=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          -DskipTests
+
+      # Schritt 2: Image Pushen
+      # Da spring-boot:build-image das Image in den lokalen Docker-Daemon lädt,
+      # müssen wir es explizit pushen.
+      - name: Push Image to GHCR
+        run: docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
