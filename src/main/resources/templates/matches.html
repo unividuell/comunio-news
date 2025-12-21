@@ -28,29 +28,34 @@
   <section>
     <div th:each="match : ${matches}" class="match-card">
       <h2 style="text-align: center;" th:text="${match.homeClub.name} + ' — ' + ${match.awayClub.name}"></h2>
-      <div th:id="'article-content_' + ${match.matchId}"></div>
-      <button th:hx-get="'/ai/matches/' + ${match.groupOrderId} + '/' + ${match.matchId}"
-              hx-trigger="click"
-              th:hx-target="'#article-content_' + ${match.matchId}"
-              hx-swap="outerHTML"
-              th:hx-indicator="'#loader-' + ${match.matchId}">
-        Generate Article
-      </button>
-      <!-- Loading Indicator -->
-      <span th:id="'loader-' + ${match.matchId}" class="htmx-indicator" style="margin-left: 10px; color: grey;">
-        Generiere... ⏳
-      </span>
-      <div style="text-align: center; margin-bottom: 10px;">
-        <label style="cursor: pointer; font-size: 0.9em; color: grey;">
-          <input type="checkbox"
-                 onchange="this.closest('.match-card').querySelectorAll('table').forEach(t => t.classList.toggle('show-spoilers'))">
-          Reveal Spoiler
-        </label>
-      </div>
-      <div class="grid">
-        <table th:replace="~{:: lineupTable(${match.homeClub.lineup})}"></table>
-        <table th:replace="~{:: lineupTable(${match.awayClub.lineup})}"></table>
-      </div>
+      <section>
+        <div th:id="'article-content_' + ${match.matchId}"></div>
+        <button th:hx-get="'/ai/matches/' + ${match.groupOrderId} + '/' + ${match.matchId}"
+                hx-trigger="click"
+                th:hx-target="'#article-content_' + ${match.matchId}"
+                hx-swap="outerHTML"
+                th:hx-indicator="'#loader-' + ${match.matchId}">
+          Generate Article
+        </button>
+        <!-- Loading Indicator -->
+        <span th:id="'loader-' + ${match.matchId}" class="htmx-indicator" style="margin-left: 10px; color: grey;">
+          Generiere... ⏳
+        </span>
+      </section>
+      <hr />
+      <section>
+        <div style="text-align: center; margin-bottom: 10px;">
+          <label style="cursor: pointer; font-size: 0.9em; color: grey;">
+            <input type="checkbox"
+                   onchange="this.closest('.match-card').querySelectorAll('table').forEach(t => t.classList.toggle('show-spoilers'))">
+            Reveal Spoiler
+          </label>
+        </div>
+        <div class="grid">
+          <table th:replace="~{:: lineupTable(${match.homeClub.lineup})}"></table>
+          <table th:replace="~{:: lineupTable(${match.awayClub.lineup})}"></table>
+        </div>
+      </section>
     </div>
   </section>
 </main>
