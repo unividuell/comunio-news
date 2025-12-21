@@ -76,8 +76,8 @@
     <!--/*@thymesVar id="lineup" type="org.unividuell.news.comunio.match.Player"*/-->
     <td th:text="${lineup.position.substring(0, 1)}"></td>
     <th scope="row">
-      <span th:if="${lineup.clubLineupStatus == 'StartOnField'}" th:text="${lineup.name}"></span>
-      <i th:if="${lineup.clubLineupStatus == 'StartOnBench'}" th:text="${lineup.name}"></i>
+      <span th:if="${lineup.clubLineupStatus.name() == 'StartOnField'}" th:text="${lineup.name}"></span>
+      <i th:if="${lineup.clubLineupStatus.name() == 'StartOnBench'}" th:text="${lineup.name}"></i>
     </th>
     <td>
       <div th:if="${lineup.member != null}">
