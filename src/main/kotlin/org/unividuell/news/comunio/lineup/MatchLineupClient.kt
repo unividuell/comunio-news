@@ -111,15 +111,15 @@ class MatchLineupClient(
         return document.select("div#content > div.matches > div.match")
     }
 
-    private fun selectMatchIds(matches: Elements): List<Int> {
+    private fun selectMatchIds(matches: Elements): List<Long> {
         val selector = "matchDetails_"
         return matches.mapNotNull { match ->
             val details = match.selectFirst("div[id^=$selector]")
-            details?.id()?.replace(selector, "")?.toInt()
+            details?.id()?.replace(selector, "")?.toLong()
         }
     }
 
-    private fun fetchMatchId(matchId: Int): Pair<Int, MatchDetails?> {
+    private fun fetchMatchId(matchId: Long): Pair<Long, MatchDetails?> {
         return restClient
             .configureMessageConverters { converters ->
                 converters.addCustomConverter(htmlJsonConverter)
@@ -143,7 +143,7 @@ class MatchLineupClient(
         val matches: List<LineupOutput>,
     ) {
         data class LineupOutput(
-            val matchId: Int,
+            val matchId: Long,
             val homeClub: ComunioClub?,
             val awayClub: ComunioClub?,
             val state: ComunioClub.MatchState,

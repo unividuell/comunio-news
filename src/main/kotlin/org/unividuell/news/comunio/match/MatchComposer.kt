@@ -25,6 +25,8 @@ class MatchComposer(
             .filter { it.homeClub != null && it.awayClub != null }
             .map { match ->
                 MatchComposerOutput(
+                    groupOrderId = groupOrderId,
+                    matchId = match.matchId,
                     homeClub = match.homeClub!!.let { club -> composeClub(club = club, memberLineup = memberLineup) },
                     awayClub = match.awayClub!!.let { club -> composeClub(club = club, memberLineup = memberLineup) }
                 )

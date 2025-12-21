@@ -3,7 +3,7 @@
     xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
     layout:decorate="~{layouts/main}">
 <head>
-  <title>HTMLX</title>
+  <title>Zingler46</title>
   <th:block layout:fragment="styles">
     <link rel="stylesheet" th:href="@{/css/matches.css}">
   </th:block>
@@ -11,19 +11,15 @@
 <body>
 <main layout:fragment="content">
   <section>
-    <h1>Htmx Demo</h1>
-    <div id="parent-div"></div>
-    <button hx-post="/clicked"
-            hx-trigger="click"
-            hx-target="#parent-div"
-            hx-swap="outerHTML">
-      Click Me!
-    </button>
-  </section>
-  <section>
     <div th:each="match : ${matches}" class="match-card">
       <h2 style="text-align: center;" th:text="${match.homeClub.name} + ' — ' + ${match.awayClub.name}"></h2>
-      <!-- Der Switch für BEIDE Tabellen -->
+      <div th:id="'article-content_' + ${match.matchId}"></div>
+      <button th:hx-get="'/ai/matches/' + ${match.groupOrderId} + '/' + ${match.matchId}"
+              hx-trigger="click"
+              th:hx-target="'#article-content_' + ${match.matchId}"
+              hx-swap="outerHTML">
+        Generate Article
+      </button>
       <div style="text-align: center; margin-bottom: 10px;">
         <label style="cursor: pointer; font-size: 0.9em; color: grey;">
           <input type="checkbox"

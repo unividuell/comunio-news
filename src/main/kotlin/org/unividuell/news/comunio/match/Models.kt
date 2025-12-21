@@ -25,6 +25,8 @@ data class Player(
 }
 
 data class MatchComposerOutput(
+    val groupOrderId: Int,
+    val matchId: Long,
     val homeClub: AiClub,
     val awayClub: AiClub,
 ) {

@@ -22,14 +22,14 @@ class MatchAiController(
     private val markdownParser = Parser.builder().build()
     private val htmlRenderer = HtmlRenderer.builder().build()
 
-    @GetMapping("/ai/matches/{groupOrderId}/{matchOrderId}", produces = ["text/html"])
+    @GetMapping("/ai/matches/{groupOrderId}/{matchId}", produces = ["text/html"])
     fun match(
         @PathVariable groupOrderId: Int,
-        @PathVariable matchOrderId: Int,
+        @PathVariable matchId: Long,
     ): String? {
         val matches = matchComposer
             .composeMatch(groupOrderId = groupOrderId)
-        val match = matches.elementAt(matchOrderId)
+        val match = matches.find { it.matchId == matchId } ?: return null
         val context  = json.writeValueAsString(match)
         val style = listOf("locker", "jugendlich", "alte Schule", "statistikorientiert", "gefühlvoll")
             .random()
