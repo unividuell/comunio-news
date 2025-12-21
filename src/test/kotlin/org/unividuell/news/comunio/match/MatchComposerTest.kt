@@ -2,12 +2,15 @@ package org.unividuell.news.comunio.match
 
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Import
 import org.springframework.modulith.test.ApplicationModuleTest
 import org.springframework.test.context.TestPropertySource
+import org.unividuell.news.comunio.TestcontainersConfiguration
 import org.unividuell.news.comunio.lineup.MatchLineupClient
 import tools.jackson.databind.json.JsonMapper
 
 @ApplicationModuleTest(mode = ApplicationModuleTest.BootstrapMode.DIRECT_DEPENDENCIES)
+@Import(TestcontainersConfiguration::class)
 @TestPropertySource(
     properties = [
         "logging.level.org.zalando.logbook=DEBUG",
