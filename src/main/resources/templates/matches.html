@@ -17,9 +17,14 @@
       <button th:hx-get="'/ai/matches/' + ${match.groupOrderId} + '/' + ${match.matchId}"
               hx-trigger="click"
               th:hx-target="'#article-content_' + ${match.matchId}"
-              hx-swap="outerHTML">
+              hx-swap="outerHTML"
+              th:hx-indicator="'#loader-' + ${match.matchId}">
         Generate Article
       </button>
+      <!-- Loading Indicator -->
+      <span th:id="'loader-' + ${match.matchId}" class="htmx-indicator" style="margin-left: 10px; color: grey;">
+        Generiere... ⏳
+      </span>
       <div style="text-align: center; margin-bottom: 10px;">
         <label style="cursor: pointer; font-size: 0.9em; color: grey;">
           <input type="checkbox"

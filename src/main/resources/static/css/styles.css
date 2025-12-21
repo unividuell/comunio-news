@@ -68,3 +68,11 @@ blockquote {
     background: transparent;
     padding: 1rem 1.5rem;
 }
+
+.htmx-indicator {
+    display: none; /* Standardmäßig versteckt */
+}
+.htmx-request .htmx-indicator,
+.htmx-request.htmx-indicator {
+    display: inline-block; /* Anzeigen, wenn Request läuft */
+}
