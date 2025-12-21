@@ -136,6 +136,11 @@
       <version>1.21.2</version>
     </dependency>
     <dependency>
+      <groupId>org.commonmark</groupId>
+      <artifactId>commonmark</artifactId>
+      <version>0.27.0</version>
+    </dependency>
+    <dependency>
       <groupId>io.github.resilience4j</groupId>
       <artifactId>resilience4j-ratelimiter</artifactId>
       <version>2.3.0</version>

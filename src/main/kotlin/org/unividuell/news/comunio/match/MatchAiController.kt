@@ -1,5 +1,8 @@
 package org.unividuell.news.comunio.match
 
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.commonmark.parser.Parser
+import org.commonmark.renderer.html.HtmlRenderer
 import org.springframework.ai.chat.prompt.PromptTemplate
 import org.springframework.ai.google.genai.GoogleGenAiChatModel
 import org.springframework.web.bind.annotation.GetMapping
@@ -14,7 +17,12 @@ class MatchAiController(
     private val json: JsonMapper,
 ) {
 
-    @GetMapping("/ai/matches/{groupOrderId}/{matchOrderId}")
+    private val logger = KotlinLogging.logger {  }
+
+    private val markdownParser = Parser.builder().build()
+    private val htmlRenderer = HtmlRenderer.builder().build()
+
+    @GetMapping("/ai/matches/{groupOrderId}/{matchOrderId}", produces = ["text/html"])
     fun match(
         @PathVariable groupOrderId: Int,
         @PathVariable matchOrderId: Int,
@@ -23,17 +31,28 @@ class MatchAiController(
             .composeMatch(groupOrderId = groupOrderId)
         val match = matches.elementAt(matchOrderId)
         val context  = json.writeValueAsString(match)
+        val style = listOf("locker", "jugendlich", "alte Schule", "statistikorientiert", "gefühlvoll")
+            .random()
+            .also {
+                logger.info { "selected style: $it" }
+            }
 
         val prompt = """
-            Schreibe einen Bericht im Stil eines Zeitung-Sport-Reporters.
+            Du bist ein Reporter einer Sport-Zeitung.
+            Antworte IMMER im Markdown-Format.
+            
             Die Daten behandeln ein Spiel in der Comunio "Zingler46".
             
             Hier ist der Kontext im JSON-Format: `$context`
             
             Fokussiere dich auf eine Bewertung der beteiligten Member. 
-            Schreibe in einem lockeren Stil. Fasse dich kurz in max 3 Absätzen.
+            Fasse dich kurz in max 3 Absätzen.
+            Dein Schreibstil: $style
         """.trimIndent()
-        return googleGenAiChatModel.call(prompt)
+        val markdown = googleGenAiChatModel.call(prompt)
+        val document = markdownParser.parse(markdown)
+        return htmlRenderer.render(document) +
+                """<div style="display:none;">writing style: $style</div>"""
     }
 
     @GetMapping("/ai/matches/{groupOrderId}")
