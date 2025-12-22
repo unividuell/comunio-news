@@ -19,8 +19,10 @@
 
 news.zingler46.unividuell.org {
     log {
-        output file /var/log/caddy/news_zingler46_access.log
-    }
+        output file /var/log/caddy/news_zingler46_access.log {
+            roll_size 10mb
+            roll_keep 7
+        }
     basicauth {
         futzi {$BASIC_AUTH_HASH}
         tonnenbolzer {$BASIC_AUTH_HASH}
