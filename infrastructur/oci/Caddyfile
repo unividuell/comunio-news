@@ -1,3 +1,29 @@
+# ================= Globaler Konfigurationsblock =================
+# Dieser Block gilt für alle unten definierten Seiten. Er vermeidet Wiederholungen.
+{
+    # E-Mail für Let's Encrypt hinterlegen. Wichtig für Benachrichtigungen,
+    # z.B. wenn ein Zertifikat bald abläuft und nicht erneuert werden konnte.
+    email unividuell@gmail.com
+
+    # Konfiguriert das Logging
+    log {
+        output file /var/log/caddy/system.log {
+            roll_size 3mb
+            roll_keep 2
+        }
+
+        # Welches Loglevel? (debug, info, warn, error)
+        level  INFO
+    }
+}
+
 news.zingler46.unividuell.org {
+    log {
+        output file /var/log/caddy/news_zingler46_access.log
+    }
+    basicauth {
+        futzi {$BASIC_AUTH_HASH}
+        tonnenbolzer {$BASIC_AUTH_HASH}
+    }
     reverse_proxy app:8080
 }

@@ -6,6 +6,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=oci
       - GOOGLE_GENAI_API_KEY=${GOOGLE_GENAI_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
       - STATS_COMUNIO_USER=${STATS_COMUNIO_USER}
       - STATS_COMUNIO_PW=${STATS_COMUNIO_PW}
     depends_on:
@@ -35,8 +36,11 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    environment:
+      - BASIC_AUTH_HASH=${BASIC_AUTH_HASH}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./logs:/var/log/caddy
       - caddy-data:/data
       - caddy-config:/config
     networks:
