@@ -20,6 +20,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # QEMU ist notwendig für Cross-Compilation (amd64 -> arm64)
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      # Buildx wird für Multi-Platform Builds benötigt
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Set up JDK 25
         uses: actions/setup-java@v4
         with:
@@ -34,16 +42,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Schritt 1: Image bauen
-      # Wir konfigurieren den Image-Namen hier direkt, damit er dem GHCR-Standard entspricht
-      - name: Build with Maven
+      # Wir nutzen spring-boot:build-image mit publish=true
+      # Das pusht das Image direkt und erlaubt uns, die Plattform zu spezifizieren
+      - name: Build and Push with Maven
         run: >
           ./mvnw -B spring-boot:build-image
           -Dspring-boot.build-image.imageName=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          -Dspring-boot.build-image.publish=true
+          -Dspring-boot.build-image.docker.publishRegistry.username=${{ github.actor }}
+          -Dspring-boot.build-image.docker.publishRegistry.password=${{ secrets.GITHUB_TOKEN }}
+          -Dspring-boot.build-image.docker.publishRegistry.url=${{ env.REGISTRY }}
           -DskipTests
-
-      # Schritt 2: Image Pushen
-      # Da spring-boot:build-image das Image in den lokalen Docker-Daemon lädt,
-      # müssen wir es explizit pushen.
-      - name: Push Image to GHCR
-        run: docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+        env:
+          # Dieser Build-Env-Parameter weist den Buildpack-Builder an, arm64 zu nutzen
+          # Hinweis: Der Builder (Standard: packetobuildpacks/builder:base) muss Multi-Arch unterstützen.
+          # Die neueren Spring Boot Versionen und Standard-Builder tun dies.
+          DOCKER_DEFAULT_PLATFORM: linux/arm64
