@@ -1,0 +1,52 @@
+services:
+  app:
+    image: ghcr.io/unividuell/comunio-news:latest
+    container_name: comunio-news-app
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=oci
+      - GOOGLE_GENAI_API_KEY=${GOOGLE_GENAI_API_KEY}
+      - STATS_COMUNIO_USER=${STATS_COMUNIO_USER}
+      - STATS_COMUNIO_PW=${STATS_COMUNIO_PW}
+    depends_on:
+      - redis
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis:
+    image: redis:alpine
+    container_name: comunio-news-redis
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis-data:/data
+    networks:
+      - app-network
+
+  caddy:
+    image: caddy:latest
+    container_name: comunio-news-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - app-network
+
+volumes:
+  redis-data:
+  caddy-data:
+  caddy-config:
+
+networks:
+  app-network:
+    driver: bridge

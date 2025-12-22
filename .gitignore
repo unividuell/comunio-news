@@ -5,6 +5,7 @@ target/
 !**/src/test/**/target/
 
 .env
+!infrastructur/oci/.env
 
 ### STS ###
 .apt_generated

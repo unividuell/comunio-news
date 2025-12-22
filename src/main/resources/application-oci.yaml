@@ -1,0 +1,6 @@
+# OCI: Oracle Cloud Infrastructure
+spring:
+  data:
+    redis:
+      host: redis
+      port: 6379

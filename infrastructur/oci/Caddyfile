@@ -1,0 +1,3 @@
+news.zingler46.unividuell.org {
+    reverse_proxy app:8080
+}
