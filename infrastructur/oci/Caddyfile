@@ -23,6 +23,7 @@ news.zingler46.unividuell.org {
             roll_size 10mb
             roll_keep 7
         }
+    }
     basicauth {
         futzi {$BASIC_AUTH_HASH}
         tonnenbolzer {$BASIC_AUTH_HASH}
