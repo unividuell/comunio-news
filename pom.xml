@@ -34,19 +34,7 @@
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-h2console</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-data-jdbc</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-flyway</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -102,10 +90,6 @@
       <artifactId>spring-boot-starter-data-redis</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.flywaydb</groupId>
-      <artifactId>flyway-database-postgresql</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.jetbrains.kotlin</groupId>
       <artifactId>kotlin-reflect</artifactId>
     </dependency>
@@ -116,10 +100,6 @@
     <dependency>
       <groupId>org.springframework.modulith</groupId>
       <artifactId>spring-modulith-starter-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.modulith</groupId>
-      <artifactId>spring-modulith-starter-jdbc</artifactId>
     </dependency>
     <dependency>
       <groupId>tools.jackson.module</groupId>
@@ -168,16 +148,6 @@
       <optional>true</optional>
     </dependency>
     <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2</artifactId>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
       <groupId>org.springframework.modulith</groupId>
       <artifactId>spring-modulith-actuator</artifactId>
       <scope>runtime</scope>
@@ -195,16 +165,6 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator-test</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-data-jdbc-test</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-flyway-test</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -255,11 +215,6 @@
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>testcontainers-junit-jupiter</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>testcontainers-postgresql</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
