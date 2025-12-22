@@ -52,9 +52,5 @@ jobs:
           -Dspring-boot.build-image.docker.publishRegistry.username=${{ github.actor }}
           -Dspring-boot.build-image.docker.publishRegistry.password=${{ secrets.GITHUB_TOKEN }}
           -Dspring-boot.build-image.docker.publishRegistry.url=${{ env.REGISTRY }}
+          -Dspring-boot.build-image.imagePlatform=linux/arm64
           -DskipTests
-        env:
-          # Dieser Build-Env-Parameter weist den Buildpack-Builder an, arm64 zu nutzen
-          # Hinweis: Der Builder (Standard: packetobuildpacks/builder:base) muss Multi-Arch unterstützen.
-          # Die neueren Spring Boot Versionen und Standard-Builder tun dies.
-          DOCKER_DEFAULT_PLATFORM: linux/arm64
