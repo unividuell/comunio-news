@@ -13,11 +13,13 @@ import org.springframework.web.client.body
 
 @Component
 class MatchLineupClient(
-    private val restClient: RestClient.Builder,
+    restClientBuilder: RestClient.Builder,
     private val htmlJsonConverter: JacksonJsonHttpMessageConverter,
 ) {
 
     private val logger = KotlinLogging.logger {  }
+
+    private val defaultClient = restClientBuilder.build()
 
     /**
      * scraps:
@@ -85,8 +87,7 @@ class MatchLineupClient(
     }
 
     private fun fetchLineUp(groupOrderId: Int): String {
-        val response = restClient
-            .build()
+        val response = defaultClient
             .get()
             .uri("matchday/2025-26/{matchGroupOrderId}", groupOrderId)
             .accept(MediaType.TEXT_HTML)
@@ -120,7 +121,8 @@ class MatchLineupClient(
     }
 
     private fun fetchMatchId(matchId: Long): Pair<Long, MatchDetails?> {
-        return restClient
+        return defaultClient
+            .mutate()
             .configureMessageConverters { converters ->
                 converters.addCustomConverter(htmlJsonConverter)
             }

@@ -9,12 +9,14 @@ import org.unividuell.news.comunio.ComunioConfig
 
 @Component
 class MemberLineupClient(
-    private val restClient: RestClient.Builder,
+    restClientBuilder: RestClient.Builder,
     private val comunioConfig: ComunioConfig,
     private val htmlJsonConverter: JacksonJsonHttpMessageConverter,
 ) {
 
     private val logger = KotlinLogging.logger {  }
+
+    private val defaultClient = restClientBuilder.build()
 
     /**
      * scraps:
@@ -44,7 +46,8 @@ class MemberLineupClient(
     }
 
     private fun fetch(comunioGamedayId: Long): GameResponse {
-        return restClient
+        return defaultClient
+            .mutate()
             .configureMessageConverters { converters ->
                 converters.addCustomConverter(htmlJsonConverter)
             }

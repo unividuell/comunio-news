@@ -16,10 +16,12 @@ import org.unividuell.news.comunio.ComunioConfig
 @Component
 class MyLeagueClient(
     private val comunioConfig: ComunioConfig,
-    private val restClient: RestClient.Builder,
+    restClientBuilder: RestClient.Builder,
 ) {
 
     private val logger = KotlinLogging.logger {  }
+
+    private val defaultClient = restClientBuilder.build()
 
     /**
      * scrapes:
@@ -39,7 +41,7 @@ class MyLeagueClient(
     }
 
     private fun fetchMyLeague(): String {
-        return restClient.build()
+        return defaultClient
             .get()
             .uri("my-league")
             .accept(MediaType.TEXT_HTML)
@@ -57,7 +59,7 @@ class MyLeagueClient(
     }
 
     private fun fetchMyLeagueAsync(): List<ComunioPlayerOutput> {
-        val body = restClient.build()
+        val body = defaultClient
             .get()
             .uri { uriBuilder -> uriBuilder
                 .path("my-league_async.php")
@@ -77,7 +79,7 @@ class MyLeagueClient(
             add("pw", comunioConfig.stats.credentials.password)
             add("stayLoggedIn", "stayLoggedIn")
         }
-        val body = restClient.build()
+        val body = defaultClient
             .post()
             .uri("cslogin")
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -125,7 +127,8 @@ class MyLeagueClient(
     }
 
     private fun loadPlayerLineup(comunioPlayer: ComunioPlayer): ApiResponse {
-        return restClient
+        return defaultClient
+            .mutate()
             .configureMessageConverters { converters ->
                 converters.addCustomConverter(htmlJsonConverter)
             }
