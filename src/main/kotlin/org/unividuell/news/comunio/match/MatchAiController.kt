@@ -8,12 +8,14 @@ import org.springframework.ai.google.genai.GoogleGenAiChatModel
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
+import org.unividuell.news.comunio.league.MyLeagueClient
 import tools.jackson.databind.json.JsonMapper
 
 @RestController
 class MatchAiController(
     private val googleGenAiChatModel: GoogleGenAiChatModel,
     private val matchComposer: MatchComposer,
+    private val myLeagueClient: MyLeagueClient,
     private val json: JsonMapper,
 ) {
 
@@ -63,7 +65,10 @@ class MatchAiController(
     ): String? {
         val matches = matchComposer
             .composeMatch(groupOrderId = groupOrderId)
-        val context  = json.writeValueAsString(matches)
+            .let { json.writeValueAsString(it) }
+        val table = myLeagueClient
+            .scrapeMemberTable(groupOrderId = groupOrderId)
+            .let { json.writeValueAsString(it.table) }
         val style = styles
             .random()
             .also {
@@ -76,16 +81,21 @@ class MatchAiController(
             
             Die Daten behandeln den Spieltag {groupOrderId} der Comunio "Zingler46".
             
-            Hier ist der Kontext im JSON-Format: `{context}`
+            Dies sind die Ergebnisse des Spieltag im JSON-Format: `{matches}`
+            Dies ist die Tabelle der Comunio-Member VOR diesem Spieltag im JSON-Format: `{table}`
             
-            Fokussiere dich auf eine Bewertung der beteiligten Member der Comunio. 
-            Widme jedem Manager 1 Absatz.
+            Fokussiere dich auf eine Bewertung der beteiligten Member der Comunio.
+            Widme jedem Manager 1 Absatz. Erwähne signifikante Änderungen in der Tabelle NACH diesem Spieltag für den jeweiligen Member.
+            
+            Erzeuge einen weiteren Absatz der sich auf erwähnenswerte Veränderungen in der Tabelle nach diesem Spieltag bezieht.
+            
             Dein Schreibstil: {style}
         """.trimIndent()
         val promptTemplate = PromptTemplate(template)
         val prompt = promptTemplate.create(mapOf(
             "groupOrderId" to groupOrderId,
-            "context" to context,
+            "matches" to matches,
+            "table" to table,
             "style" to style,
         ))
         val markdown = googleGenAiChatModel.call(prompt).result.output.text

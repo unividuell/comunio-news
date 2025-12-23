@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.http.MediaType
 import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter
 import org.springframework.stereotype.Component
@@ -14,7 +15,7 @@ import org.unividuell.news.comunio.login.LoginStatsComunio
 
 @Component
 class MyLeagueClient(
-    private val comunioConfig: ComunioConfig,
+    val comunioConfig: ComunioConfig,
     restClientBuilder: RestClient.Builder,
     private val loginStatsComunio: LoginStatsComunio,
 ) {
@@ -48,7 +49,8 @@ class MyLeagueClient(
      *  1. POST https://stats.comunio.de/cslogin
      *  2. GET https://stats.comunio.de/my-league_async.php?cid=13742756
      */
-    fun scrapeMemberTable(): ComunioMemberTableOutput {
+    @Cacheable(value = ["scrapeMemberTable"], key = "#root.target.comunioConfig.season + '_' + #groupOrderId")
+    fun scrapeMemberTable(groupOrderId: Int): ComunioMemberTableOutput {
         logger.info { "Start scraping my league for table" }
         preflight()
         return fetchMyLeagueAsync()
