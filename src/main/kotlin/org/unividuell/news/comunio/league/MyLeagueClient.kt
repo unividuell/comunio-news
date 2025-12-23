@@ -12,7 +12,6 @@ import org.springframework.web.client.body
 import org.unividuell.news.comunio.ComunioConfig
 import org.unividuell.news.comunio.login.LoginStatsComunio
 
-@Deprecated("Use MemberLineupClient instead")
 @Component
 class MyLeagueClient(
     private val comunioConfig: ComunioConfig,
@@ -33,12 +32,34 @@ class MyLeagueClient(
      *  . <all comunio-members>
      * 13. GET https://stats.comunio.de/xhr/playerAction.php?action=rgd&i=8555052
      */
-    fun scrape(): List<ComunioPlayerOutput> {
-        logger.info { "Start scraping my league" }
+    @Deprecated("Use MemberLineupClient instead")
+    fun scrapeMemberLineup(): ComunioMemberLineupOutput {
+        logger.info { "Start scraping my league for lineup" }
+        preflight()
+        return fetchMyLeagueAsync()
+            .let { parseMemberLineup(document = it) }
+            .let { ComunioMemberLineupOutput(memberLineups = it) }
+            .also { logger.info { "Finished scraping my league for lineup" } }
+    }
+
+    /**
+     * scrapes:
+     *  0. GET https://stats.comunio.de/my-league
+     *  1. POST https://stats.comunio.de/cslogin
+     *  2. GET https://stats.comunio.de/my-league_async.php?cid=13742756
+     */
+    fun scrapeMemberTable(): ComunioMemberTableOutput {
+        logger.info { "Start scraping my league for table" }
+        preflight()
+        return fetchMyLeagueAsync()
+            .let { parseMemberTable(document = it) }
+            .let { ComunioMemberTableOutput(table = it) }
+            .also { logger.info { "Finished scraping my league for table" } }
+    }
+
+    private fun preflight() {
         val body = fetchMyLeague()
         loginStatsComunio.ensureLoggedIn(body)
-        return fetchMyLeagueAsync()
-            .also { logger.info { "Finished scraping my league" } }
     }
 
     private fun fetchMyLeague(): String {
@@ -51,9 +72,7 @@ class MyLeagueClient(
             ?: throw IllegalStateException("Could not fetch league page!")
     }
 
-
-
-    private fun fetchMyLeagueAsync(): List<ComunioPlayerOutput> {
+    private fun fetchMyLeagueAsync(): Document {
         val body = defaultClient
             .get()
             .uri { uriBuilder -> uriBuilder
@@ -65,10 +84,27 @@ class MyLeagueClient(
             .body<String>()
             ?: throw IllegalStateException("No response body from async request!")
         val doc = Jsoup.parse(body)
-        return selectPlayerIds(document = doc)
+        return doc
     }
 
-    private fun selectPlayerIds(document: Document): List<ComunioPlayerOutput> {
+    private fun parseMemberTable(document: Document): List<ComunioMemberTableOutput.ComunioMemberTableItem> {
+        val selector = "//www.comunio.de/users/"
+        val memberTableBodyRows = document.select("table.liga tr.rowLink:gt(0)")
+        return memberTableBodyRows.map { member ->
+            val memberCols = member.select("td")
+            val memberNameCol = memberCols[0].selectFirst("a")!!
+            val memberId = memberNameCol.attr("href").replace(selector, "")
+            val memberName = memberNameCol.text()
+            val memberPreMatchdayPoints = memberCols[2].text().toInt()
+            ComunioMemberTableOutput.ComunioMemberTableItem(
+                memberId = memberId.toLong(),
+                username = memberName,
+                preMatchdayPoints = memberPreMatchdayPoints
+            )
+        }.sortedByDescending { it.preMatchdayPoints }
+    }
+
+    private fun parseMemberLineup(document: Document): List<ComunioMemberLineupOutput.ComunioMemberLineupItem> {
         val selector = "//www.comunio.de/users/"
         val playerLinks = document.select("a[href^=$selector]")
         return playerLinks
@@ -79,15 +115,15 @@ class MyLeagueClient(
             }
             .map {
                 val lineup = loadPlayerLineup(comunioPlayer = it)
-                ComunioPlayerOutput(
+                ComunioMemberLineupOutput.ComunioMemberLineupItem(
                     userId = it.userId.toLong(),
                     username = it.username,
                     lineup = lineup.players.map { player ->
-                        ComunioPlayerOutput.ComunioFootballPlayer(
+                        ComunioMemberLineupOutput.ComunioMemberLineupItem.ComunioFootballPlayer(
                             pid = player.pid.toLong(),
                             name = player.name,
-                            activeByUser = ComunioPlayerOutput.UserActive.byId(id = player.active),
-                            matchActive = ComunioPlayerOutput.MatchActive.byId(player.matchActive),
+                            activeByUser = ComunioMemberLineupOutput.ComunioMemberLineupItem.UserActive.byId(id = player.active),
+                            matchActive = ComunioMemberLineupOutput.ComunioMemberLineupItem.MatchActive.byId(player.matchActive),
                             valued = player.valued == 1
                         )
                     }
@@ -122,36 +158,54 @@ class MyLeagueClient(
 
     data class ComunioPlayer(val userId: String, val username: String)
 
-    data class ComunioPlayerOutput(
-        val userId: Long,
-        val username: String,
-        val lineup: List<ComunioFootballPlayer>
+    data class ComunioMemberTableOutput(
+        val table: List<ComunioMemberTableItem>
     ) {
-        data class ComunioFootballPlayer(
-            val pid: Long,
-            val name: String,
-            val activeByUser: UserActive,
-            val matchActive: MatchActive,
-            val valued: Boolean,
+        data class ComunioMemberTableItem(
+            val memberId: Long,
+            val username: String,
+            val preMatchdayPoints: Int,
         )
-        enum class UserActive(val id: Int) {
-            Active(1),
-            Inactive(0),
-            Unknown(-100);
-            companion object {
-                fun byId(id: Int?): UserActive {
-                    return entries.firstOrNull { it.id == id } ?: Unknown
+    }
+
+    data class ComunioMemberLineupOutput(
+        val memberLineups: List<ComunioMemberLineupItem>
+    ) {
+        data class ComunioMemberLineupItem(
+            val userId: Long,
+            val username: String,
+            val lineup: List<ComunioFootballPlayer>
+        ) {
+            data class ComunioFootballPlayer(
+                val pid: Long,
+                val name: String,
+                val activeByUser: UserActive,
+                val matchActive: MatchActive,
+                val valued: Boolean,
+            )
+
+            enum class UserActive(val id: Int) {
+                Active(1),
+                Inactive(0),
+                Unknown(-100);
+
+                companion object {
+                    fun byId(id: Int?): UserActive {
+                        return entries.firstOrNull { it.id == id } ?: Unknown
+                    }
                 }
             }
-        }
-        enum class MatchActive(val id: Int) {
-            Active(1),
-            Bench(-2),
-            NotInSquad(-3),
-            Unknown(-100);
-            companion object {
-                fun byId(id: Int?): MatchActive {
-                    return entries.firstOrNull { it.id == id } ?: Unknown
+
+            enum class MatchActive(val id: Int) {
+                Active(1),
+                Bench(-2),
+                NotInSquad(-3),
+                Unknown(-100);
+
+                companion object {
+                    fun byId(id: Int?): MatchActive {
+                        return entries.firstOrNull { it.id == id } ?: Unknown
+                    }
                 }
             }
         }

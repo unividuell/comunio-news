@@ -24,12 +24,21 @@ class MyLeagueClientTest {
     lateinit var sut: MyLeagueClient
 
     @Test
-    fun `it should scrape the league`() {
+    fun `it should scrape the member lineup`() {
         // act
-        val actual = sut.scrape()
+        val actual = sut.scrapeMemberLineup()
         // assert
-        actual.forEach { println("${it.username.padStart(12)}: ${it.lineup.joinToString(", ") { "${it.name} (${it.matchActive})" }}") }
-        actual shouldHaveSize 10
+        actual.memberLineups.forEach { println("${it.username.padStart(12)}: ${it.lineup.joinToString(", ") { "${it.name} (${it.matchActive})" }}") }
+        actual.memberLineups shouldHaveSize 10
+    }
+
+    @Test
+    fun `it should scrape the member table`() {
+        // act
+        val actual = sut.scrapeMemberTable()
+        // assert
+        actual.table.forEach { println(it.toString()) }
+        actual.table shouldHaveSize 10
     }
 
 }

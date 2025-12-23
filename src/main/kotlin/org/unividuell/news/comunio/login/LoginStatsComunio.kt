@@ -16,12 +16,16 @@ class LoginStatsComunio(
 
     private val defaultClient = restClientBuilder.build()
 
-    fun ensureLoggedIn(body: String) {
+    fun ensureLoggedIn(body: String): String? {
         val doc = Jsoup.parse(body)
         val errorNotLoggedIn = doc.selectFirst("div#content > div.warning > span#errorMsg")?.text()
         if (errorNotLoggedIn != null && errorNotLoggedIn.contains("logged")) {
             login()
+        } else {
+            // return body, if logged in
+            return body
         }
+        return null
     }
 
 
