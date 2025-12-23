@@ -93,15 +93,26 @@ class MyLeagueClient(
         val selector = "//www.comunio.de/users/"
         val memberTableBodyRows = document.select("table.liga tr.rowLink:gt(0)")
         return memberTableBodyRows.map { member ->
-            val memberCols = member.select("td")
+            val memberCols = member.select("> td")
+            // 0: member
             val memberNameCol = memberCols[0].selectFirst("a")!!
             val memberId = memberNameCol.attr("href").replace(selector, "")
             val memberName = memberNameCol.text()
+            // 1: position in table
+            // 2: pre matchday points
             val memberPreMatchdayPoints = memberCols[2].text().toInt()
+            // 3: remaining football players
+            // 4: points current matchday
+            val memberPointsCurrentMatchday = memberCols[4].text().toInt()
+            // 5: icon table change (up/down/..)
+            // 6: post matchday points
+            val memberPostMatchdayPoints = memberCols[6].text().toInt()
             ComunioMemberTableOutput.ComunioMemberTableItem(
                 memberId = memberId.toLong(),
                 username = memberName,
-                preMatchdayPoints = memberPreMatchdayPoints
+                preMatchdayPoints = memberPreMatchdayPoints,
+                pointsCurrentMatchday = memberPointsCurrentMatchday,
+                postMatchdayPoints = memberPostMatchdayPoints,
             )
         }.sortedByDescending { it.preMatchdayPoints }
     }
@@ -167,6 +178,8 @@ class MyLeagueClient(
             val memberId: Long,
             val username: String,
             val preMatchdayPoints: Int,
+            val pointsCurrentMatchday: Int,
+            val postMatchdayPoints: Int,
         )
     }
 

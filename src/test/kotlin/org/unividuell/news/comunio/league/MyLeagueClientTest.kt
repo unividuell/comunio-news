@@ -3,10 +3,13 @@ package org.unividuell.news.comunio.league
 import io.kotest.matchers.collections.shouldHaveSize
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Import
 import org.springframework.modulith.test.ApplicationModuleTest
 import org.springframework.test.context.TestPropertySource
+import org.unividuell.news.comunio.TestcontainersConfiguration
 
 @ApplicationModuleTest(mode = ApplicationModuleTest.BootstrapMode.DIRECT_DEPENDENCIES)
+@Import(TestcontainersConfiguration::class)
 @TestPropertySource(
     properties = [
         // request header `COOKIE` is set by underlying httpclient - logback does not see this
