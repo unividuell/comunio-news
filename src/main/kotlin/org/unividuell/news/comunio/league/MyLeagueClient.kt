@@ -7,16 +7,17 @@ import org.jsoup.nodes.Document
 import org.springframework.http.MediaType
 import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter
 import org.springframework.stereotype.Component
-import org.springframework.util.LinkedMultiValueMap
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.body
 import org.unividuell.news.comunio.ComunioConfig
+import org.unividuell.news.comunio.login.LoginStatsComunio
 
 @Deprecated("Use MemberLineupClient instead")
 @Component
 class MyLeagueClient(
     private val comunioConfig: ComunioConfig,
     restClientBuilder: RestClient.Builder,
+    private val loginStatsComunio: LoginStatsComunio,
 ) {
 
     private val logger = KotlinLogging.logger {  }
@@ -35,7 +36,7 @@ class MyLeagueClient(
     fun scrape(): List<ComunioPlayerOutput> {
         logger.info { "Start scraping my league" }
         val body = fetchMyLeague()
-        ensureLoggedIn(body)
+        loginStatsComunio.ensureLoggedIn(body)
         return fetchMyLeagueAsync()
             .also { logger.info { "Finished scraping my league" } }
     }
@@ -50,13 +51,7 @@ class MyLeagueClient(
             ?: throw IllegalStateException("Could not fetch league page!")
     }
 
-    private fun ensureLoggedIn(body: String) {
-        val doc = Jsoup.parse(body)
-        val errorNotLoggedIn = doc.selectFirst("div#content > div.warning > span#errorMsg")?.text()
-        if (errorNotLoggedIn != null && errorNotLoggedIn.contains("logged")) {
-            login()
-        }
-    }
+
 
     private fun fetchMyLeagueAsync(): List<ComunioPlayerOutput> {
         val body = defaultClient
@@ -71,27 +66,6 @@ class MyLeagueClient(
             ?: throw IllegalStateException("No response body from async request!")
         val doc = Jsoup.parse(body)
         return selectPlayerIds(document = doc)
-    }
-
-    private fun login() {
-        val formData = LinkedMultiValueMap<String, String>().apply {
-            add("name", comunioConfig.stats.credentials.username)
-            add("pw", comunioConfig.stats.credentials.password)
-            add("stayLoggedIn", "stayLoggedIn")
-        }
-        val body = defaultClient
-            .post()
-            .uri("cslogin")
-            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-            .body(formData)
-            .retrieve()
-            .body<String>()
-            ?: throw IllegalStateException("No response body from login request!")
-        val loginDoc = Jsoup.parse(body)
-        val errorNotLoggedIn = loginDoc.selectFirst("div.site > div#menu > div.warning > span#errorMsg")
-        if (errorNotLoggedIn != null) {
-            throw IllegalStateException("Could not login w/ credentials! ${errorNotLoggedIn.text()}")
-        }
     }
 
     private fun selectPlayerIds(document: Document): List<ComunioPlayerOutput> {
