@@ -50,12 +50,12 @@ class MyLeagueClient(
      *  2. GET https://stats.comunio.de/my-league_async.php?cid=13742756
      */
     @Cacheable(value = ["scrapeMemberTable"], key = "#root.target.comunioConfig.season + '_' + #groupOrderId")
-    fun scrapeMemberTable(groupOrderId: Int): ComunioMemberTableOutput {
+    // Hint: currently we can only cache a list of our data classes :/
+    fun scrapeMemberTable(groupOrderId: Int): List<ComunioMemberTableOutput> {
         logger.info { "Start scraping my league for table" }
         preflight()
         return fetchMyLeagueAsync()
             .let { parseMemberTable(document = it) }
-            .let { ComunioMemberTableOutput(table = it) }
             .also { logger.info { "Finished scraping my league for table" } }
     }
 
@@ -89,7 +89,7 @@ class MyLeagueClient(
         return doc
     }
 
-    private fun parseMemberTable(document: Document): List<ComunioMemberTableOutput.ComunioMemberTableItem> {
+    private fun parseMemberTable(document: Document): List<ComunioMemberTableOutput> {
         val selector = "//www.comunio.de/users/"
         val memberTableBodyRows = document.select("table.liga tr.rowLink:gt(0)")
         return memberTableBodyRows.map { member ->
@@ -107,7 +107,7 @@ class MyLeagueClient(
             // 5: icon table change (up/down/..)
             // 6: post matchday points
             val memberPostMatchdayPoints = memberCols[6].text().toInt()
-            ComunioMemberTableOutput.ComunioMemberTableItem(
+            ComunioMemberTableOutput(
                 memberId = memberId.toLong(),
                 username = memberName,
                 preMatchdayPoints = memberPreMatchdayPoints,
@@ -172,16 +172,12 @@ class MyLeagueClient(
     data class ComunioPlayer(val userId: String, val username: String)
 
     data class ComunioMemberTableOutput(
-        val table: List<ComunioMemberTableItem>
-    ) {
-        data class ComunioMemberTableItem(
-            val memberId: Long,
-            val username: String,
-            val preMatchdayPoints: Int,
-            val pointsCurrentMatchday: Int,
-            val postMatchdayPoints: Int,
-        )
-    }
+        val memberId: Long,
+        val username: String,
+        val preMatchdayPoints: Int,
+        val pointsCurrentMatchday: Int,
+        val postMatchdayPoints: Int,
+    )
 
     data class ComunioMemberLineupOutput(
         val memberLineups: List<ComunioMemberLineupItem>

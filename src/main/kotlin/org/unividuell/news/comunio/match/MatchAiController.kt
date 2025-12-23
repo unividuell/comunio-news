@@ -68,7 +68,7 @@ class MatchAiController(
             .let { json.writeValueAsString(it) }
         val table = myLeagueClient
             .scrapeMemberTable(groupOrderId = groupOrderId)
-            .let { json.writeValueAsString(it.table) }
+            .let { json.writeValueAsString(it) }
         val style = styles
             .random()
             .also {

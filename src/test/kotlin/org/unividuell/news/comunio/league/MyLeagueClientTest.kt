@@ -40,8 +40,8 @@ class MyLeagueClientTest {
         // act
         val actual = sut.scrapeMemberTable(groupOrderId = 15)
         // assert
-        actual.table.forEach { println(it.toString()) }
-        actual.table shouldHaveSize 10
+        actual.forEach { println(it.toString()) }
+        actual shouldHaveSize 10
     }
 
 }
