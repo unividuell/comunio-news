@@ -9,14 +9,14 @@ import org.junit.jupiter.params.provider.CsvSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.modulith.test.ApplicationModuleTest
 import org.springframework.test.context.TestPropertySource
+import org.unividuell.news.comunio.ApplicationModuleTestBase
 import java.time.OffsetDateTime
 
 @ApplicationModuleTest
 @TestPropertySource(properties = [
     "logging.level.org.zalando.logbook=TRACE",
-    "spring.ai.openai-sdk.api-key=FOO",
 ])
-class OpenLigaDbClientTest {
+class OpenLigaDbClientTest : ApplicationModuleTestBase() {
 
     @Autowired
     lateinit var sut: OpenLigaDbClient

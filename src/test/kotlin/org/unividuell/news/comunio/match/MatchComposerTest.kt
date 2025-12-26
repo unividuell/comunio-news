@@ -5,22 +5,22 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Import
 import org.springframework.modulith.test.ApplicationModuleTest
 import org.springframework.test.context.TestPropertySource
+import org.unividuell.news.comunio.ApplicationModuleTestBase
 import org.unividuell.news.comunio.TestcontainersConfiguration
 import org.unividuell.news.comunio.lineup.MatchLineupClient
 import tools.jackson.databind.json.JsonMapper
 
-@ApplicationModuleTest(mode = ApplicationModuleTest.BootstrapMode.DIRECT_DEPENDENCIES)
+@ApplicationModuleTest(mode = ApplicationModuleTest.BootstrapMode.ALL_DEPENDENCIES)
 @Import(TestcontainersConfiguration::class)
 @TestPropertySource(
     properties = [
         "logging.level.org.zalando.logbook=DEBUG",
         "logging.level.org.apache.hc.client5.http.headers=INFO",
         "org.unividuell.news.comunio=INFO",
-        "spring.ai.openai-sdk.api-key=FOO",
     ],
     locations = ["file:.env"]
 )
-class MatchComposerTest {
+class MatchComposerTest : ApplicationModuleTestBase() {
 
     @Autowired
     lateinit var sut: MatchComposer

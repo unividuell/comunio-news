@@ -5,14 +5,14 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.modulith.test.ApplicationModuleTest
 import org.springframework.test.context.TestPropertySource
+import org.unividuell.news.comunio.ApplicationModuleTestBase
 import tools.jackson.databind.json.JsonMapper
 
 @ApplicationModuleTest
 @TestPropertySource(properties = [
     "logging.level.org.zalando.logbook=TRACE",
-    "spring.ai.openai-sdk.api-key=FOO",
 ])
-class MemberLineupClientTest {
+class MemberLineupClientTest : ApplicationModuleTestBase() {
 
     @Autowired
     lateinit var sut: MemberLineupClient

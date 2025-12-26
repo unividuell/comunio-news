@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.modulith.test.ApplicationModuleTest
 import org.springframework.test.context.TestPropertySource
+import org.unividuell.news.comunio.ApplicationModuleTestBase
 import org.unividuell.news.comunio.TestcontainersConfiguration
 
 @ApplicationModuleTest(mode = ApplicationModuleTest.BootstrapMode.DIRECT_DEPENDENCIES)
@@ -19,11 +20,10 @@ import org.unividuell.news.comunio.TestcontainersConfiguration
         "logging.level.org.zalando.logbook=TRACE",
         // use the build in logging :)
         // "logging.level.org.apache.hc.client5.http.headers=DEBUG",
-        "spring.ai.openai-sdk.api-key=FOO",
     ],
     locations = ["file:.env"]
 )
-class MyLeagueClientTest {
+class MyLeagueClientTest : ApplicationModuleTestBase() {
 
     @Autowired
     lateinit var sut: MyLeagueClient

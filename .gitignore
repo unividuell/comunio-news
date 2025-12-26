@@ -6,6 +6,7 @@ target/
 
 .env
 !infrastructur/oci/.env
+/db/
 
 ### STS ###
 .apt_generated

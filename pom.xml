@@ -29,9 +29,13 @@
   <properties>
     <java.version>24</java.version>
     <kotlin.version>2.2.21</kotlin.version>
-    <spring-modulith.version>2.0.0</spring-modulith.version>
+    <spring-modulith.version>2.0.1</spring-modulith.version>
   </properties>
   <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-h2console</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
@@ -98,10 +102,6 @@
       <artifactId>kotlin-stdlib</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.springframework.modulith</groupId>
-      <artifactId>spring-modulith-starter-core</artifactId>
-    </dependency>
-    <dependency>
       <groupId>tools.jackson.module</groupId>
       <artifactId>jackson-module-kotlin</artifactId>
     </dependency>
@@ -148,6 +148,23 @@
       <optional>true</optional>
     </dependency>
     <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jdbc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.modulith</groupId>
+      <artifactId>spring-modulith-starter-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.modulith</groupId>
+      <artifactId>spring-modulith-starter-jdbc</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.springframework.modulith</groupId>
       <artifactId>spring-modulith-actuator</artifactId>
       <scope>runtime</scope>
@@ -155,6 +172,11 @@
     <dependency>
       <groupId>org.springframework.modulith</groupId>
       <artifactId>spring-modulith-observability</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.modulith</groupId>
+      <artifactId>spring-modulith-runtime</artifactId>
       <scope>runtime</scope>
     </dependency>
     <dependency>
