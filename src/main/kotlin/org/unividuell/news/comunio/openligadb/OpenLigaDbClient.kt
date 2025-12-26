@@ -5,6 +5,7 @@ import de.openligadb.model.Match
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.client.RestClient
 import org.zalando.logbook.Logbook
 import org.zalando.logbook.spring.LogbookClientHttpRequestInterceptor
@@ -49,6 +50,7 @@ class OpenLigaDbClient(
     lateinit var kickOffInstants: List<OffsetDateTime>
     lateinit var kickOffsByMatchGroup: Map<Int, List<ZonedDateTime>>
 
+    @Transactional
     fun fetchMatches() {
         matches = getMatchDataApi()
             .map { http ->
