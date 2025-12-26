@@ -1,9 +1,11 @@
 package org.unividuell.news.comunio.league
 
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Import
+import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.modulith.test.ApplicationModuleTest
 import org.springframework.test.context.TestPropertySource
 import org.unividuell.news.comunio.TestcontainersConfiguration
@@ -26,6 +28,9 @@ class MyLeagueClientTest {
     @Autowired
     lateinit var sut: MyLeagueClient
 
+    @Autowired
+    lateinit var redisTemplate: RedisTemplate<String, Any>
+
     @Test
     fun `it should scrape the member lineup`() {
         // act
@@ -42,6 +47,25 @@ class MyLeagueClientTest {
         // assert
         actual.forEach { println(it.toString()) }
         actual shouldHaveSize 10
+    }
+
+    @Test
+    fun `it should serialize and deserialize to and from cache`() {
+        // arrange
+        redisTemplate.opsForValue().get("scrapeMemberTable::2026_15").also {
+            println("before: $it")
+        }
+        // act
+        val writeCache = sut.scrapeMemberTable(groupOrderId = 15)
+        redisTemplate.opsForValue().get("scrapeMemberTable::2026_15").also {
+            println("after write: $it")
+        }
+        val readCache = sut.scrapeMemberTable(groupOrderId = 15)
+        // assert
+        redisTemplate.opsForValue().get("scrapeMemberTable::2026_15").also {
+            println("after read: $it")
+        }
+        writeCache shouldBe readCache
     }
 
 }

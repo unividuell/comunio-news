@@ -10,10 +10,13 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.data.redis.cache.RedisCacheConfiguration
 import org.springframework.data.redis.cache.RedisCacheManager
 import org.springframework.data.redis.connection.RedisConnectionFactory
+import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer
 import org.springframework.data.redis.serializer.RedisSerializationContext
+import org.springframework.data.redis.serializer.StringRedisSerializer
 import tools.jackson.databind.DefaultTyping
 import tools.jackson.databind.json.JsonMapper
+import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator
 
 @Configuration
 @EnableCaching
@@ -23,13 +26,7 @@ class CacheConfiguration {
 
     @Bean
     fun cacheManager(connectionFactory: RedisConnectionFactory): RedisCacheManager {
-        val json = JsonMapper.builder()
-            .activateDefaultTyping(tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator.builder()
-                .allowIfBaseType(Any::class.java)
-                .build(),
-                DefaultTyping.NON_FINAL
-            )
-            .build()
+        val json = redisJsonMapper()
 
         val config = RedisCacheConfiguration.defaultCacheConfig()
             .entryTtl(java.time.Duration.ofMinutes(30))
@@ -40,6 +37,36 @@ class CacheConfiguration {
 
         return RedisCacheManager.builder(connectionFactory)
             .cacheDefaults(config)
+            .build()
+    }
+
+    @Bean
+    fun redisTemplate(connectionFactory: RedisConnectionFactory): RedisTemplate<String, Any> {
+        val template = RedisTemplate<String, Any>()
+        template.connectionFactory = connectionFactory
+
+        val json = redisJsonMapper()
+        val serializer = GenericJacksonJsonRedisSerializer(json)
+
+        // Keys as Strings, Values as JSON
+        template.keySerializer = StringRedisSerializer()
+        template.valueSerializer = serializer
+        template.hashKeySerializer = StringRedisSerializer()
+        template.hashValueSerializer = serializer
+
+        template.afterPropertiesSet()
+        return template
+    }
+
+    @Bean
+    fun redisJsonMapper(): JsonMapper {
+        return JsonMapper.builder()
+            .activateDefaultTyping(
+                BasicPolymorphicTypeValidator.builder()
+                .allowIfBaseType(Any::class.java)
+                .build(),
+                DefaultTyping.NON_FINAL
+            )
             .build()
     }
 
