@@ -2,6 +2,7 @@ package org.unividuell.news.comunio.openligadb
 
 import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -20,6 +21,11 @@ class OpenLigaDbClientTest : ApplicationModuleTestBase() {
 
     @Autowired
     lateinit var sut: OpenLigaDbClient
+
+    @BeforeEach
+    fun setUp() {
+        sut.fetchMatches()
+    }
 
     @Test
     fun `it should list all groups`() {
