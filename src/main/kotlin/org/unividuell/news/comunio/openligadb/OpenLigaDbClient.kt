@@ -30,6 +30,7 @@ class OpenLigaDbClient(
         .build()
 
     data class OpenLigaDbMatch(
+        val matchId: Int,
         val group: OpenLigaDbMatchGroup,
         val matchDateTimeUTC: OffsetDateTime,
         val homeTeam: OpenLigaDbTeam?,
@@ -55,6 +56,7 @@ class OpenLigaDbClient(
         matches = getMatchDataApi()
             .map { http ->
                 OpenLigaDbMatch(
+                    matchId = http.matchID!!,
                     group = http.group!!.let { httpGroup ->
                         OpenLigaDbMatch.OpenLigaDbMatchGroup(
                             groupOrderId = httpGroup.groupOrderID!!
