@@ -16,6 +16,20 @@ spring:
       jdbc:
         schema-initialization:
           enabled: true
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: always
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+        - scheduledTasks
+        - quartz
+  endpoint:
+    quartz:
+      show-values: always
 logging:
   level:
     root: INFO
