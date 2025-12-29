@@ -1,5 +1,7 @@
 # OCI: Oracle Cloud Infrastructure
 spring:
+  datasource:
+    url: jdbc:h2:file:./db/comunio-news;DB_CLOSE_ON_EXIT=FALSE
   data:
     redis:
       host: redis
