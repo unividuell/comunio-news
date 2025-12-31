@@ -1,4 +1,4 @@
-package org.unividuell.news.comunio.lineup
+package org.unividuell.news.comunio.lineup.client
 
 import io.kotest.matchers.collections.shouldHaveSize
 import org.junit.jupiter.api.Test

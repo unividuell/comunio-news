@@ -23,7 +23,7 @@ class MatchLineupClient(
     private val defaultClient = restClientBuilder.build()
 
     data class ComunioMatchIds(
-        val comunioGamedayId: Long,
+        val comunioGamedayId: Int,
         val matchIds: List<Int>,
     )
 
@@ -111,10 +111,10 @@ class MatchLineupClient(
         return Jsoup.parse(body)
     }
 
-    private fun selectComunioGamedayId(document: Document): Long {
+    private fun selectComunioGamedayId(document: Document): Int {
         return document.selectFirst("div#comMatchday")
             ?.text()
-            ?.toLongOrNull()
+            ?.toIntOrNull()
             ?: throw IllegalStateException("Could not fetch comunioGamedayId!")
     }
 

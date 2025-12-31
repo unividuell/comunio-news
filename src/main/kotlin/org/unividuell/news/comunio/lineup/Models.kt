@@ -1,7 +1,7 @@
 package org.unividuell.news.comunio.lineup
 
 data class MatchLineupOutput(
-    val comunioGamedayId: Long,
+    val comunioGamedayId: Int,
     val matches: List<LineupOutput>,
 ) {
     data class LineupOutput(
@@ -83,5 +83,23 @@ data class MatchLineupOutput(
                 }
             }
         }
+    }
+}
+
+data class MemberLineupOutput(
+    val comunioGamedayId: Long,
+    val members: List<ComunioMember>,
+) {
+    data class ComunioMember(
+        val memberId: Long,
+        val name: String,
+        val lineup: List<MemberPlayer>,
+    ) {
+        data class MemberPlayer(
+            val playerId: Long,
+            val clubId: Long,
+            val position: String,
+            val active: Boolean,
+        )
     }
 }

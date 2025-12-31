@@ -6,20 +6,19 @@ import org.unividuell.news.comunio.AppConfig
 import org.unividuell.news.comunio.lineup.LineupService
 import org.unividuell.news.comunio.lineup.MatchLineupOutput
 import org.unividuell.news.comunio.lineup.MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer
-import org.unividuell.news.comunio.lineup.MemberLineupClient
+import org.unividuell.news.comunio.lineup.MemberLineupOutput
 import org.unividuell.news.comunio.match.Player.ClubLineupStatus
 
 @Component
 class MatchComposer(
     private val appConfig: AppConfig,
     private val lineupService: LineupService,
-    private val memberLineupClient: MemberLineupClient,
 ) {
 
     @Cacheable(value = ["matchComposer"], key = "#groupOrderId")
     fun composeMatch(groupOrderId: Int): List<MatchComposerOutput> {
-        val matchLineup = lineupService.scrape(groupOrderId = groupOrderId)
-        val memberLineup = memberLineupClient.scrape(comunioGamedayId = matchLineup.comunioGamedayId)
+        val matchLineup = lineupService.scrapeMatches(groupOrderId = groupOrderId)
+        val memberLineup = lineupService.scrapeMembers(comunioGamedayId = matchLineup.comunioGamedayId)
 
         return matchLineup
             .matches
@@ -36,7 +35,7 @@ class MatchComposer(
 
     private fun composeClub(
         club: MatchLineupOutput.LineupOutput.ComunioClub,
-        memberLineup: MemberLineupClient.MemberLineupOutput,
+        memberLineup: MemberLineupOutput,
     ): AiClub {
         return AiClub(
             name = appConfig.clubIdMapping.first { it.cid == club.cid }.name,

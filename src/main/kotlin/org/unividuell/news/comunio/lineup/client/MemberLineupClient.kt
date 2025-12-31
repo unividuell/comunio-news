@@ -1,4 +1,4 @@
-package org.unividuell.news.comunio.lineup
+package org.unividuell.news.comunio.lineup.client
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter
@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.body
 import org.unividuell.news.comunio.ComunioConfig
+import org.unividuell.news.comunio.lineup.MemberLineupOutput
 
 @Component
 class MemberLineupClient(
@@ -22,7 +23,7 @@ class MemberLineupClient(
      * scraps:
      * 1. GET https://stats.comunio.de/xhr/lineup.php?cid=13742756&s=2026&gid=395809&com=1
      */
-    fun scrape(comunioGamedayId: Long): MemberLineupOutput {
+    fun scrape(comunioGamedayId: Int): MemberLineupOutput {
         logger.info { "Scraping member lineup for comunioGamedayId $comunioGamedayId" }
         val response = fetch(comunioGamedayId = comunioGamedayId)
         val members = response.members.map { (memberId, memberName) ->
@@ -45,7 +46,7 @@ class MemberLineupClient(
         return MemberLineupOutput(comunioGamedayId = response.gamedayId, members = members)
     }
 
-    private fun fetch(comunioGamedayId: Long): GameResponse {
+    private fun fetch(comunioGamedayId: Int): GameResponse {
         return defaultClient
             .mutate()
             .configureMessageConverters { converters ->
@@ -64,24 +65,6 @@ class MemberLineupClient(
             .retrieve()
             .body<GameResponse>()
             ?: throw IllegalStateException("Could not fetch lineup!")
-    }
-
-    data class MemberLineupOutput(
-        val comunioGamedayId: Long,
-        val members: List<ComunioMember>,
-    ) {
-        data class ComunioMember(
-            val memberId: Long,
-            val name: String,
-            val lineup: List<MemberPlayer>,
-        ) {
-            data class MemberPlayer(
-                val playerId: Long,
-                val clubId: Long,
-                val position: String,
-                val active: Boolean,
-            )
-        }
     }
 
     data class GameResponse(
