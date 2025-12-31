@@ -47,6 +47,11 @@ class LineupService(
         return MatchLineupOutput(comunioGamedayId = matchGroup.comunioGamedayId, matches = matches)
     }
 
+    @Transactional(readOnly = true)
+    fun getLineup(matchId: Int): MatchLineupOutput.LineupOutput? {
+        return lineupRepository.findByIdOrNull(matchId)?.json
+    }
+
     fun scrapeMembers(comunioGamedayId: Int): MemberLineupOutput {
         return memberLineupClient.scrape(comunioGamedayId = comunioGamedayId)
     }

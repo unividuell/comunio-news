@@ -18,7 +18,8 @@ class MatchdayService(
     private val appConfig: AppConfig,
 ) {
 
-    private var currentMatchGroup: MatchGroup? = null
+    // only IDs - these don't get stale over time
+    private val matchGroupCacheByGroupOrderId = mutableMapOf<Int, MatchGroup>()
 
     @Transactional
     fun updateMatchdaysOfSeason() {
@@ -29,16 +30,32 @@ class MatchdayService(
     fun currentMatchGroup(relativeTo: Instant): MatchGroup? {
         val openLiga = openLigaDbClient
             .currentMatchGroup(relativeTo)
-            ?: run {
-                return null
-            }
+            ?: return null
+        if (matchGroupCacheByGroupOrderId.containsKey(openLiga.groupOrderId)) {
+            return matchGroupCacheByGroupOrderId[openLiga.groupOrderId]
+        }
+
         val comunio = comunioClient.scrapeMatchIds(groupOrderId = openLiga.groupOrderId)
         val matchGroup = MatchGroup(
             openLigaGroupOrderId = openLiga.groupOrderId,
             comunioGamedayId = comunio.comunioGamedayId,
             comunioMatchIds = comunio.matchIds,
         )
-        currentMatchGroup = matchGroup
+        matchGroupCacheByGroupOrderId[openLiga.groupOrderId] = matchGroup
+        return matchGroup
+    }
+
+    fun matchGroup(groupOrderId: Int): MatchGroup? {
+        if (matchGroupCacheByGroupOrderId.containsKey(groupOrderId)) {
+            return matchGroupCacheByGroupOrderId[groupOrderId]
+        }
+        val comunio = comunioClient.scrapeMatchIds(groupOrderId = groupOrderId)
+        val matchGroup = MatchGroup(
+            openLigaGroupOrderId = groupOrderId,
+            comunioGamedayId = comunio.comunioGamedayId,
+            comunioMatchIds = comunio.matchIds,
+        )
+        matchGroupCacheByGroupOrderId[groupOrderId] = matchGroup
         return matchGroup
     }
 
@@ -68,6 +85,4 @@ class MatchdayService(
                 )
             }
     }
-
-    fun currentMatchGroup(): MatchGroup? = currentMatchGroup
 }

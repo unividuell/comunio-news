@@ -16,17 +16,17 @@ class MatchComposer(
     private val lineupService: LineupService,
 ) {
 
-    @Cacheable(value = ["matchComposer"], key = "#groupOrderId")
     fun composeMatch(groupOrderId: Int): List<MatchComposerOutput> {
         val matchGroup = matchdayService
-            .currentMatchGroup()
+            .matchGroup(groupOrderId = groupOrderId)
             ?: return emptyList()
 
-        val matchLineup = lineupService.scrapeMatches(matchGroup = matchGroup)
-        val memberLineup = lineupService.scrapeMembers(comunioGamedayId = matchLineup.comunioGamedayId)
+        val matchLineups = matchGroup
+            .comunioMatchIds
+            .mapNotNull { lineupService.getLineup(matchId = it) }
+        val memberLineup = lineupService.scrapeMembers(comunioGamedayId = matchGroup.comunioGamedayId)
 
-        return matchLineup
-            .matches
+        return matchLineups
             .filter { it.homeClub != null && it.awayClub != null }
             .map { match ->
                 MatchComposerOutput(
