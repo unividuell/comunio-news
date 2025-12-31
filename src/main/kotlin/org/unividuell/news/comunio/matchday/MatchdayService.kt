@@ -5,17 +5,17 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.unividuell.news.comunio.AppConfig
 import org.unividuell.news.comunio.OpenligaDbConfig
-import org.unividuell.news.comunio.lineup.LineupService
+import org.unividuell.news.comunio.matchday.client.ComunioClient
 import org.unividuell.news.comunio.matchday.client.OpenLigaDbClient
 import java.time.Instant
 
 @Service
 class MatchdayService(
     private val openLigaDbClient: OpenLigaDbClient,
+    private val comunioClient: ComunioClient,
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val openligaDbConfig: OpenligaDbConfig,
     private val appConfig: AppConfig,
-    private val lineupService: LineupService,
 ) {
 
     private var currentMatchGroup: MatchGroup? = null
@@ -32,7 +32,7 @@ class MatchdayService(
             ?: run {
                 return null
             }
-        val comunio = lineupService.scrapeIds(groupOrderId = openLiga.groupOrderId)
+        val comunio = comunioClient.scrapeMatchIds(groupOrderId = openLiga.groupOrderId)
         val matchGroup = MatchGroup(
             openLigaGroupOrderId = openLiga.groupOrderId,
             comunioGamedayId = comunio.comunioGamedayId,
@@ -68,4 +68,6 @@ class MatchdayService(
                 )
             }
     }
+
+    fun currentMatchGroup(): MatchGroup? = currentMatchGroup
 }

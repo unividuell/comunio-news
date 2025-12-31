@@ -8,6 +8,7 @@ import org.unividuell.news.comunio.lineup.client.MatchLineupClient
 import org.unividuell.news.comunio.lineup.client.MemberLineupClient
 import org.unividuell.news.comunio.lineup.repository.LineupEntity
 import org.unividuell.news.comunio.lineup.repository.LineupRepository
+import org.unividuell.news.comunio.matchday.MatchGroup
 import org.unividuell.news.comunio.toSha256
 import tools.jackson.databind.json.JsonMapper
 
@@ -21,14 +22,9 @@ class LineupService(
 
     private val logger = KotlinLogging.logger {  }
 
-    fun scrapeIds(groupOrderId: Int): MatchLineupClient.ComunioMatchIds {
-        return matchLineupClient.scrapeMatchIds(groupOrderId = groupOrderId)
-    }
-
     @Transactional
-    fun scrapeMatches(groupOrderId: Int): MatchLineupOutput {
-        val matchIds = matchLineupClient.scrapeMatchIds(groupOrderId = groupOrderId)
-        val matches = matchIds.matchIds.map {
+    fun scrapeMatches(matchGroup: MatchGroup): MatchLineupOutput {
+        val matches = matchGroup.comunioMatchIds.map {
             matchLineupClient.scrapeMatchLineup(matchId = it)
         }
         matches.forEach { client ->
@@ -48,7 +44,7 @@ class LineupService(
                 lineupRepository.save(LineupEntity(id = client.matchId, hash = hash, json = client))
             }
         }
-        return MatchLineupOutput(comunioGamedayId = matchIds.comunioGamedayId, matches = matches)
+        return MatchLineupOutput(comunioGamedayId = matchGroup.comunioGamedayId, matches = matches)
     }
 
     fun scrapeMembers(comunioGamedayId: Int): MemberLineupOutput {

@@ -1,6 +1,5 @@
 package org.unividuell.news.comunio.match
 
-import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Component
 import org.unividuell.news.comunio.AppConfig
 import org.unividuell.news.comunio.lineup.LineupService
@@ -8,16 +7,22 @@ import org.unividuell.news.comunio.lineup.MatchLineupOutput
 import org.unividuell.news.comunio.lineup.MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer
 import org.unividuell.news.comunio.lineup.MemberLineupOutput
 import org.unividuell.news.comunio.match.Player.ClubLineupStatus
+import org.unividuell.news.comunio.matchday.MatchdayService
 
 @Component
 class MatchComposer(
     private val appConfig: AppConfig,
+    private val matchdayService: MatchdayService,
     private val lineupService: LineupService,
 ) {
 
     @Cacheable(value = ["matchComposer"], key = "#groupOrderId")
     fun composeMatch(groupOrderId: Int): List<MatchComposerOutput> {
-        val matchLineup = lineupService.scrapeMatches(groupOrderId = groupOrderId)
+        val matchGroup = matchdayService
+            .currentMatchGroup()
+            ?: return emptyList()
+
+        val matchLineup = lineupService.scrapeMatches(matchGroup = matchGroup)
         val memberLineup = lineupService.scrapeMembers(comunioGamedayId = matchLineup.comunioGamedayId)
 
         return matchLineup
