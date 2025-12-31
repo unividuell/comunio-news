@@ -20,10 +20,20 @@ data class ComunioConfig(
     }
 }
 
+@ConfigurationProperties(prefix = "openligadb")
+data class OpenligaDbConfig(
+    val season: Int,
+)
+
 @ConfigurationProperties(prefix = "app")
 data class AppConfig(
+    val season: Season,
     val clubIdMapping: List<ClubIdMapping>
 ) {
+    data class Season(
+        val start: Int,
+        val end: Int,
+    )
     data class ClubIdMapping(
         val name: String,
         val olid: Int,

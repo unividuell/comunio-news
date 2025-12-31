@@ -8,13 +8,16 @@ import org.springframework.scheduling.annotation.Async
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.event.TransactionalEventListener
+import org.unividuell.news.comunio.matchday.Match
+import org.unividuell.news.comunio.matchday.MatchdayService
+import org.unividuell.news.comunio.matchday.OpenLigaDbFetched
 import tools.jackson.databind.json.JsonMapper
 import tools.jackson.module.kotlin.readValue
 import java.time.Instant
 
 @Service
 class OpenLigaDbScheduler(
-    private val openLigaDbClient: OpenLigaDbClient,
+    private val matchdayService: MatchdayService,
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val scheduler: Scheduler,
     private val json: JsonMapper,
@@ -23,21 +26,21 @@ class OpenLigaDbScheduler(
     private val logger = KotlinLogging.logger {  }
 
     fun boot() {
-        openLigaDbClient.fetchMatches()
+        matchdayService.updateMatchdaysOfSeason()
     }
 
     @Scheduled(cron = "0 0 8 * * *")
     fun updateMatches() {
         logger.info { "Updating OpenLigaDb matches" }
-        openLigaDbClient.fetchMatches()
+        matchdayService.updateMatchdaysOfSeason()
     }
 
     data class CurrentMatchGroup(val groupOrderId: Int)
 
     @ApplicationModuleListener
-    fun on(event: OpenLigaDbClient.OpenLigaDbFetched) {
+    fun on(event: OpenLigaDbFetched) {
         logger.info { "Consuming OpenLigaDbFetched event $event" }
-        openLigaDbClient
+        matchdayService
             .currentMatchGroup(relativeTo = Instant.now())
             ?.let { applicationEventPublisher.publishEvent(CurrentMatchGroup(it.groupOrderId)) }
             ?: run { logger.warn { "No current match group found" } }
@@ -47,19 +50,19 @@ class OpenLigaDbScheduler(
     @TransactionalEventListener
     fun on(event: CurrentMatchGroup) {
         logger.info { "Consuming CurrentMatchGroup event $event" }
-        openLigaDbClient
-            .matchesByGroupOrderId[event.groupOrderId]
+        matchdayService
+            .matchesByGroupOrderId(event.groupOrderId)
             ?.also { logger.info { "Found ${it.size} matches for group ${event.groupOrderId}" } }
             ?.forEach { match ->
-                scheduleMatchStartJob(executionTime = match.matchDateTimeUTC.toInstant(), match = match)
+                scheduleMatchStartJob(executionTime = match.kickoffTime.toInstant(), match = match)
             }
     }
 
-    fun scheduleMatchStartJob(executionTime: Instant, match: OpenLigaDbClient.OpenLigaDbMatch) {
-        logger.info { "Scheduling match start job for $executionTime for match ${match.homeTeam?.name} vs ${match.awayTeam?.name}" }
+    fun scheduleMatchStartJob(executionTime: Instant, match: Match) {
+        logger.info { "Scheduling match start job for $executionTime for match ${match.id.home.name} vs ${match.id.away.name}" }
 
         val jobDetail = JobBuilder.newJob(RunningMatchJob::class.java)
-            .withIdentity("match-${match.matchId}")
+            .withIdentity("match-${match.id}")
             .usingJobData("match", json.writeValueAsString(match))
             .build()
 
@@ -77,12 +80,12 @@ class RunningMatchJob(
 ) : Job {
     private val logger = KotlinLogging.logger {  }
     override fun execute(context: JobExecutionContext) {
-        val match = json.readValue<OpenLigaDbClient.OpenLigaDbMatch>(context.jobDetail.jobDataMap["match"] as String)
-        logger.info { "Executing running match job for ${match.homeTeam?.name} vs ${match.awayTeam?.name}" }
+        val match = json.readValue<Match>(context.jobDetail.jobDataMap["match"] as String)
+        logger.info { "Executing running match job for ${match.id.home.shortName} vs ${match.id.away.shortName}" }
 
         val scheduler = context.scheduler
         val refreshJob = JobBuilder.newJob(RefreshRunningMatchJob::class.java)
-            .withIdentity("refresh-running-match-${match.matchId}")
+            .withIdentity("refresh-running-match-${match.id}")
             .usingJobData(context.jobDetail.jobDataMap)
             .build()
 
@@ -105,7 +108,7 @@ class RefreshRunningMatchJob(
 
     private val logger = KotlinLogging.logger {  }
     override fun execute(context: JobExecutionContext) {
-        val match = json.readValue<OpenLigaDbClient.OpenLigaDbMatch>(context.jobDetail.jobDataMap["match"] as String)
-        logger.info { "Executing refresh running match job for ${match.homeTeam?.name} vs ${match.awayTeam?.name}" }
+        val match = json.readValue<Match>(context.jobDetail.jobDataMap["match"] as String)
+        logger.info { "Executing refresh running match job for ${match.id.home.shortName} vs ${match.id.away.shortName}" }
     }
 }

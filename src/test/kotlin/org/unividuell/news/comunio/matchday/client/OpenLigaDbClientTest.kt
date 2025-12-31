@@ -1,4 +1,4 @@
-package org.unividuell.news.comunio.openligadb
+package org.unividuell.news.comunio.matchday.client
 
 import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -8,12 +8,12 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.modulith.test.ApplicationModuleTest
+import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.TestPropertySource
 import org.unividuell.news.comunio.ApplicationModuleTestBase
 import java.time.OffsetDateTime
 
-@ApplicationModuleTest
+@SpringBootTest
 @TestPropertySource(properties = [
     "logging.level.org.zalando.logbook=TRACE",
 ])
@@ -24,7 +24,7 @@ class OpenLigaDbClientTest : ApplicationModuleTestBase() {
 
     @BeforeEach
     fun setUp() {
-        sut.fetchMatches()
+        sut.fetchMatches(seasonStartYear = 2025)
     }
 
     @Test
