@@ -3,21 +3,22 @@ package org.unividuell.news.comunio.match
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Component
 import org.unividuell.news.comunio.AppConfig
-import org.unividuell.news.comunio.lineup.MatchLineupClient
-import org.unividuell.news.comunio.lineup.MatchLineupClient.MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer
+import org.unividuell.news.comunio.lineup.LineupService
+import org.unividuell.news.comunio.lineup.MatchLineupOutput
+import org.unividuell.news.comunio.lineup.MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer
 import org.unividuell.news.comunio.lineup.MemberLineupClient
 import org.unividuell.news.comunio.match.Player.ClubLineupStatus
 
 @Component
 class MatchComposer(
     private val appConfig: AppConfig,
-    private val matchLineupClient: MatchLineupClient,
+    private val lineupService: LineupService,
     private val memberLineupClient: MemberLineupClient,
 ) {
 
     @Cacheable(value = ["matchComposer"], key = "#groupOrderId")
     fun composeMatch(groupOrderId: Int): List<MatchComposerOutput> {
-        val matchLineup = matchLineupClient.scrape(groupOrderId = groupOrderId)
+        val matchLineup = lineupService.scrape(groupOrderId = groupOrderId)
         val memberLineup = memberLineupClient.scrape(comunioGamedayId = matchLineup.comunioGamedayId)
 
         return matchLineup
@@ -34,7 +35,7 @@ class MatchComposer(
     }
 
     private fun composeClub(
-        club: MatchLineupClient.MatchLineupOutput.LineupOutput.ComunioClub,
+        club: MatchLineupOutput.LineupOutput.ComunioClub,
         memberLineup: MemberLineupClient.MemberLineupOutput,
     ): AiClub {
         return AiClub(

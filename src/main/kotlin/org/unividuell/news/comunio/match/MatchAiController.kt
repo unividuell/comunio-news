@@ -29,7 +29,7 @@ class MatchAiController(
     @GetMapping("/ai/matches/{groupOrderId}/{matchId}", produces = ["text/html"])
     fun match(
         @PathVariable groupOrderId: Int,
-        @PathVariable matchId: Long,
+        @PathVariable matchId: Int,
     ): String? {
         val matches = matchComposer
             .composeMatch(groupOrderId = groupOrderId)

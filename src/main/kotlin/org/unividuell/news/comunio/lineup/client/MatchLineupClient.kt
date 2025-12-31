@@ -1,4 +1,4 @@
-package org.unividuell.news.comunio.lineup
+package org.unividuell.news.comunio.lineup.client
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -10,6 +10,7 @@ import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.body
+import org.unividuell.news.comunio.lineup.MatchLineupOutput
 
 @Component
 class MatchLineupClient(
@@ -21,22 +22,32 @@ class MatchLineupClient(
 
     private val defaultClient = restClientBuilder.build()
 
+    data class ComunioMatchIds(
+        val comunioGamedayId: Long,
+        val matchIds: List<Int>,
+    )
+
     /**
      * scraps:
      * 0. GET https://stats.comunio.de/matchday/2025-26/15
-     * 1. GET https://stats.comunio.de/xhr/matchDetails.php?mid=7663
-     * .
-     * 8. GET https://stats.comunio.de/xhr/matchDetails.php?mid=7671
      */
-    fun scrape(groupOrderId: Int): MatchLineupOutput {
+    fun scrapeMatchIds(groupOrderId: Int): ComunioMatchIds {
         logger.info { "Scraping lineup for groupOrderId $groupOrderId" }
         val fetch = fetchLineUp(groupOrderId = groupOrderId)
         val parsed = parseLineup(body = fetch)
         val comunioGamedayId = selectComunioGamedayId(document = parsed)
         val matchElements = selectMatches(document = parsed)
-        val matchIds = selectMatchIds(matches = matchElements)
-        val matches = matchIds.map { fetchMatchId(matchId = it) }
-        val lineups = matches.map { (matchId, matchDetails) ->
+        return ComunioMatchIds(comunioGamedayId = comunioGamedayId, matchIds = selectMatchIds(matches = matchElements))
+    }
+
+    /**
+     * scraps:
+     *
+     * 1. GET https://stats.comunio.de/xhr/matchDetails.php?mid=7663
+     */
+    fun scrapeMatchLineup(matchId: Int): MatchLineupOutput.LineupOutput {
+        val (matchId, matchDetails) = fetchMatch(matchId = matchId)
+        val lineup =
             MatchLineupOutput.LineupOutput(
                 matchId = matchId,
                 homeClub = matchDetails?.let { matchDetails ->
@@ -63,9 +74,8 @@ class MatchLineupClient(
                 },
                 state = MatchLineupOutput.LineupOutput.ComunioClub.MatchState.byId(matchDetails?.state),
             )
-        }
-        logger.info { "Scraped lineup for groupOrderId $groupOrderId ($comunioGamedayId)" }
-        return MatchLineupOutput(comunioGamedayId = comunioGamedayId, matches = lineups)
+        logger.info { "Scraped lineup for match $matchId" }
+        return lineup
     }
 
     private fun mapPlayer(player: Player): MatchLineupOutput.LineupOutput.ComunioClub.ClubLineup.ComunioFootballPlayer {
@@ -112,15 +122,15 @@ class MatchLineupClient(
         return document.select("div#content > div.matches > div.match")
     }
 
-    private fun selectMatchIds(matches: Elements): List<Long> {
+    private fun selectMatchIds(matches: Elements): List<Int> {
         val selector = "matchDetails_"
         return matches.mapNotNull { match ->
             val details = match.selectFirst("div[id^=$selector]")
-            details?.id()?.replace(selector, "")?.toLong()
+            details?.id()?.replace(selector, "")?.toInt()
         }
     }
 
-    private fun fetchMatchId(matchId: Long): Pair<Long, MatchDetails?> {
+    private fun fetchMatch(matchId: Int): Pair<Int, MatchDetails?> {
         return defaultClient
             .mutate()
             .configureMessageConverters { converters ->
@@ -138,92 +148,6 @@ class MatchLineupClient(
             .retrieve()
             .body<MatchDetails>()
             ?.let { matchDetails -> matchId to matchDetails } ?: (matchId to null)
-    }
-
-    data class MatchLineupOutput(
-        val comunioGamedayId: Long,
-        val matches: List<LineupOutput>,
-    ) {
-        data class LineupOutput(
-            val matchId: Long,
-            val homeClub: ComunioClub?,
-            val awayClub: ComunioClub?,
-            val state: ComunioClub.MatchState,
-        ) {
-            data class ComunioClub(
-                val cid: Int,
-                val lineup: ClubLineup,
-            ) {
-                data class ClubLineup(
-                    val details: LineupDetails,
-                    val players: List<ComunioFootballPlayer>,
-                ) {
-                    enum class LineupDetails(val id: Int) {
-                        Expected(1),
-                        Playing(2),
-                        Over(3),
-                        Unknow(-1);
-
-                        companion object {
-                            fun byId(id: Int): LineupDetails {
-                                return entries.firstOrNull { it.id == id } ?: Unknow
-                            }
-                        }
-                    }
-
-                    data class ComunioFootballPlayer(
-                        val pid: Long,
-                        val name: String,
-                        val position: Position,
-                        val goals: Int,
-                        val penaltyGoals: Int,
-                        val points: Int?,
-                        val active: Active,
-                        val substitutedInAtMin: Int?,
-                        val substitutedOutAtMin: Int?,
-                    ) {
-                        enum class Position(val id: String) {
-                            // "t", "a", "m", "s"
-                            Goalkeeper("t"),
-                            Defender("a"),
-                            Midfielder("m"),
-                            Forward("s");
-
-                            companion object {
-                                fun byId(id: String?): Position {
-                                    return entries.first { it.id == id }
-                                }
-                            }
-                        }
-
-                        enum class Active(val id: Int) {
-                            ProperlyActive(-1),
-                            Active(1),
-                            Bench(-2),
-                            Unknow(-1000);
-
-                            companion object {
-                                fun byId(id: Int): Active = entries.firstOrNull { it.id == id } ?: Unknow
-                            }
-                        }
-                    }
-                }
-
-                enum class MatchState(val id: String) {
-                    FirstHalf("1st"),
-                    HalfTime("HT"),
-                    SecondHalf("2nd"),
-                    FullTime("FT"),
-                    Unknow("");
-
-                    companion object {
-                        fun byId(id: String?): MatchState {
-                            return entries.firstOrNull { it.id == id } ?: Unknow
-                        }
-                    }
-                }
-            }
-        }
     }
 
     data class MatchDetails(

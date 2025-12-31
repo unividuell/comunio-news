@@ -7,7 +7,7 @@ import org.springframework.modulith.test.ApplicationModuleTest
 import org.springframework.test.context.TestPropertySource
 import org.unividuell.news.comunio.ApplicationModuleTestBase
 import org.unividuell.news.comunio.TestcontainersConfiguration
-import org.unividuell.news.comunio.lineup.MatchLineupClient
+import org.unividuell.news.comunio.lineup.client.MatchLineupClient
 import tools.jackson.databind.json.JsonMapper
 
 @ApplicationModuleTest(mode = ApplicationModuleTest.BootstrapMode.ALL_DEPENDENCIES)
