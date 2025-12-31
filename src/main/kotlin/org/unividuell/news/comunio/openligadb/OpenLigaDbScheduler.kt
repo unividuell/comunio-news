@@ -35,14 +35,21 @@ class OpenLigaDbScheduler(
         matchdayService.updateMatchdaysOfSeason()
     }
 
-    data class CurrentMatchGroup(val groupOrderId: Int)
+    data class CurrentMatchGroup(val openLigaGroupOrderId: Int, val comunioGamedayId: Int, val matchIds: List<Int>)
 
     @ApplicationModuleListener
     fun on(event: OpenLigaDbFetched) {
         logger.info { "Consuming OpenLigaDbFetched event $event" }
         matchdayService
             .currentMatchGroup(relativeTo = Instant.now())
-            ?.let { applicationEventPublisher.publishEvent(CurrentMatchGroup(it.groupOrderId)) }
+            ?.let {
+                applicationEventPublisher
+                    .publishEvent(CurrentMatchGroup(
+                        openLigaGroupOrderId = it.openLigaGroupOrderId,
+                        comunioGamedayId = it.comunioGamedayId,
+                        matchIds = it.comunioMatchIds
+                    ))
+            }
             ?: run { logger.warn { "No current match group found" } }
     }
 
@@ -51,8 +58,8 @@ class OpenLigaDbScheduler(
     fun on(event: CurrentMatchGroup) {
         logger.info { "Consuming CurrentMatchGroup event $event" }
         matchdayService
-            .matchesByGroupOrderId(event.groupOrderId)
-            ?.also { logger.info { "Found ${it.size} matches for group ${event.groupOrderId}" } }
+            .matchesByGroupOrderId(event.openLigaGroupOrderId)
+            ?.also { logger.info { "Found ${it.size} matches for group ${event.openLigaGroupOrderId}" } }
             ?.forEach { match ->
                 scheduleMatchStartJob(executionTime = match.kickoffTime.toInstant(), match = match)
             }

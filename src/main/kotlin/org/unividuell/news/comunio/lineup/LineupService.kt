@@ -21,6 +21,10 @@ class LineupService(
 
     private val logger = KotlinLogging.logger {  }
 
+    fun scrapeIds(groupOrderId: Int): MatchLineupClient.ComunioMatchIds {
+        return matchLineupClient.scrapeMatchIds(groupOrderId = groupOrderId)
+    }
+
     @Transactional
     fun scrapeMatches(groupOrderId: Int): MatchLineupOutput {
         val matchIds = matchLineupClient.scrapeMatchIds(groupOrderId = groupOrderId)

@@ -5,7 +5,6 @@ import de.openligadb.model.Match
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
-import org.unividuell.news.comunio.matchday.MatchGroup
 import org.zalando.logbook.Logbook
 import org.zalando.logbook.spring.LogbookClientHttpRequestInterceptor
 import java.time.Instant
@@ -92,7 +91,7 @@ class OpenLigaDbClient(
             .getmatchdataLeagueShortcutLeagueSeasonGet(leagueShortcut = "bl1", leagueSeason = seasonStartYear)
     }
 
-    fun currentMatchGroup(relativeTo: Instant): MatchGroup? {
+    fun currentMatchGroup(relativeTo: Instant): OpenLigaDbGroup? {
         return kickOffsGroupStartEnd
             .mapValues {
                 // extend the range of the matchgroup by -1 and +3 days (at start of day)
@@ -106,7 +105,11 @@ class OpenLigaDbClient(
             .entries
             .firstOrNull { relativeTo >= it.value.first && relativeTo < it.value.second }
             ?.also { logger.debug { "current group for ${relativeTo}: ${it.key} (${it.value})" } }
-            ?.key?.let { MatchGroup(groupOrderId = it) }
+            ?.key?.let { OpenLigaDbGroup(groupOrderId = it) }
     }
 
 }
+
+data class OpenLigaDbGroup(
+    val groupOrderId: Int,
+)

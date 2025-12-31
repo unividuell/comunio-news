@@ -3,7 +3,9 @@ package org.unividuell.news.comunio.matchday
 import java.time.OffsetDateTime
 
 data class MatchGroup(
-    val groupOrderId: Int,
+    val openLigaGroupOrderId: Int,
+    val comunioGamedayId: Int,
+    val comunioMatchIds: List<Int>,
 )
 
 data class Match(
@@ -12,12 +14,12 @@ data class Match(
 ) {
     data class MatchId(
         val season: Season,
-        val matchdayOrderId: Int,
+        val groupOrderId: Int,
         val home: Club,
         val away: Club,
     ) {
         override fun toString(): String {
-            return "${season.startYear.toString().takeLast(2)}/${season.endYear.toString().takeLast(2)}_${matchdayOrderId}_${home.shortName}-${away.shortName}"
+            return "${season.startYear.toString().takeLast(2)}/${season.endYear.toString().takeLast(2)}_${groupOrderId}_${home.shortName}-${away.shortName}"
         }
     }
     data class Season(

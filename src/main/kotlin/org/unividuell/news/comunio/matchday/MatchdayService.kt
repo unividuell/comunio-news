@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.unividuell.news.comunio.AppConfig
 import org.unividuell.news.comunio.OpenligaDbConfig
+import org.unividuell.news.comunio.lineup.LineupService
 import org.unividuell.news.comunio.matchday.client.OpenLigaDbClient
 import java.time.Instant
 
@@ -14,7 +15,10 @@ class MatchdayService(
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val openligaDbConfig: OpenligaDbConfig,
     private val appConfig: AppConfig,
+    private val lineupService: LineupService,
 ) {
+
+    private var currentMatchGroup: MatchGroup? = null
 
     @Transactional
     fun updateMatchdaysOfSeason() {
@@ -22,7 +26,21 @@ class MatchdayService(
         applicationEventPublisher.publishEvent(OpenLigaDbFetched())
     }
 
-    fun currentMatchGroup(relativeTo: Instant) = openLigaDbClient.currentMatchGroup(relativeTo)
+    fun currentMatchGroup(relativeTo: Instant): MatchGroup? {
+        val openLiga = openLigaDbClient
+            .currentMatchGroup(relativeTo)
+            ?: run {
+                return null
+            }
+        val comunio = lineupService.scrapeIds(groupOrderId = openLiga.groupOrderId)
+        val matchGroup = MatchGroup(
+            openLigaGroupOrderId = openLiga.groupOrderId,
+            comunioGamedayId = comunio.comunioGamedayId,
+            comunioMatchIds = comunio.matchIds,
+        )
+        currentMatchGroup = matchGroup
+        return matchGroup
+    }
 
     fun matchesByGroupOrderId(groupOrderId: Int): List<Match>? {
         return openLigaDbClient
@@ -34,7 +52,7 @@ class MatchdayService(
                             startYear = appConfig.season.start,
                             endYear = appConfig.season.end,
                         ),
-                        matchdayOrderId = groupOrderId,
+                        groupOrderId = groupOrderId,
                         home = Match.Club(
                             name = client.homeTeam.name,
                             shortName = client.homeTeam.shortName,
