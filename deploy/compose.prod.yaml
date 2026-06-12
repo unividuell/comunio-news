@@ -1,0 +1,43 @@
+name: comunio-news
+
+services:
+  app:
+    image: ghcr.io/unividuell/comunio-news:latest
+    container_name: comunio-news-app
+    profiles: [disabled-as-broken]
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=oci
+      - GOOGLE_GENAI_API_KEY=${GOOGLE_GENAI_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - STATS_COMUNIO_USER=${STATS_COMUNIO_USER}
+      - STATS_COMUNIO_PW=${STATS_COMUNIO_PW}
+    depends_on:
+      - redis
+    networks:
+      - edge      # reachable by the shared edge (reverse_proxy comunio-news-app:8080)
+      - internal  # to reach redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis:
+    image: redis:alpine
+    container_name: comunio-news-redis
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis-data:/data
+    networks:
+      - internal
+
+volumes:
+  redis-data:
+
+networks:
+  edge:
+    external: true
+  internal:
+    driver: bridge
