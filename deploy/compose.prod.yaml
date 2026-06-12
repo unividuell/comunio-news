@@ -27,13 +27,11 @@ services:
     networks:
       - edge      # reachable by the shared edge (reverse_proxy comunio-news-app:8080)
       - internal  # to reach redis
-    # The buildpack run image has bash but no curl/wget — probe via bash's /dev/tcp.
+    # No in-container healthcheck: this Paketo "tiny" run image is distroless (no shell, no
+    # curl/wget/ls) so no CMD probe can execute, and /actuator/health isn't exposed anyway
+    # (management exposure = scheduledTasks,quartz). Liveness is observable at the edge.
     healthcheck:
-      test: ['CMD', 'bash', '-c', 'exec 3<>/dev/tcp/127.0.0.1/8080 && printf ''GET /actuator/health HTTP/1.0\r\n\r\n'' >&3 && grep -q UP <&3']
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 90s
+      disable: true
 
   redis:
     image: redis:alpine
