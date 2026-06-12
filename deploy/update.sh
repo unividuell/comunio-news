@@ -14,9 +14,9 @@ if [ ! -f .env ]; then
 fi
 
 docker network create edge 2>/dev/null || true
-# app is gated behind the disabled-as-broken profile; this pulls/starts redis only.
-# Once the app is fixed, append: --profile disabled-as-broken
+# H2 DB dir must be writable by the buildpack run user (uid 1002, gid 1000)
+mkdir -p data
 docker compose --env-file .env -f compose.prod.yaml pull
 docker compose --env-file .env -f compose.prod.yaml up -d
 docker image prune -f
-echo "comunio-news update complete (app gated behind disabled-as-broken profile)."
+echo "comunio-news update complete."

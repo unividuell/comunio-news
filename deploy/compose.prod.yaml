@@ -4,24 +4,36 @@ services:
   app:
     image: ghcr.io/unividuell/comunio-news:latest
     container_name: comunio-news-app
-    profiles: [disabled-as-broken]
     restart: unless-stopped
+    # The buildpack run image sizes the JVM heap to the whole host (Headroom 0%); cap it so
+    # the several JVMs on this box coexist.
+    mem_limit: 2g
     environment:
       - SPRING_PROFILES_ACTIVE=oci
+      # The app's H2 file DB defaults to ./db (=/workspace/db), which the non-root `cnb` user
+      # cannot create (AccessDeniedException) -> Flyway fails -> crash loop. Point it at the
+      # writable mounted ./data volume instead.
+      - SPRING_DATASOURCE_URL=jdbc:h2:file:/data/comunio-news;DB_CLOSE_ON_EXIT=FALSE
       - GOOGLE_GENAI_API_KEY=${GOOGLE_GENAI_API_KEY}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - STATS_COMUNIO_USER=${STATS_COMUNIO_USER}
       - STATS_COMUNIO_PW=${STATS_COMUNIO_PW}
+    volumes:
+      # H2 DB lands at ./data/comunio-news.mv.db; host dir must be owned by the buildpack
+      # run user (uid 1002, gid 1000), else H2 still can't write.
+      - ./data:/data
     depends_on:
       - redis
     networks:
       - edge      # reachable by the shared edge (reverse_proxy comunio-news-app:8080)
       - internal  # to reach redis
+    # The buildpack run image has bash but no curl/wget — probe via bash's /dev/tcp.
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      test: ['CMD', 'bash', '-c', 'exec 3<>/dev/tcp/127.0.0.1/8080 && printf ''GET /actuator/health HTTP/1.0\r\n\r\n'' >&3 && grep -q UP <&3']
       interval: 30s
-      timeout: 10s
+      timeout: 5s
       retries: 3
+      start_period: 90s
 
   redis:
     image: redis:alpine
